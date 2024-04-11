@@ -3,6 +3,7 @@ package API
 type User struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
+	Mail     string `json:"mail"`
 }
 
 // UserData structure for individual user data

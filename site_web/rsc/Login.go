@@ -1,7 +1,7 @@
 package API
 
 import (
-	"crypto/sha256"
+	"crypto/sha512"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -16,6 +16,7 @@ var (
 	users    = make(map[string]User) // Map to store users
 	username string                  // Variable to store username of logged-in user
 	password string                  // Variable to store password of logged-in user
+	mail     string                  // Variable to store mail of logged-in user
 	logged   bool                    // Variable to track if user is logged in
 )
 
@@ -41,6 +42,7 @@ func confirmRegisterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	username := r.FormValue("username")
 	password := r.FormValue("password")
+	mail := r.FormValue("email")
 	// Check if username already exists
 	if _, exists := users[username]; exists {
 		Invalid := "Username already existe"
@@ -49,6 +51,14 @@ func confirmRegisterHandler(w http.ResponseWriter, r *http.Request) {
 			Name:   Invalid,
 		}
 		renderTemplate(w, "Register", data)
+	} else if _, exists := users[mail]; exists {
+		Invalid := "Mail already existe"
+		data := CombinedData{
+			Logged: logged,
+			Name:   Invalid,
+		}
+		renderTemplate(w, "Register", data)
+
 	} else { // if not , is password valid
 		isValid := validatePassword(password)
 		if !isValid {
@@ -197,7 +207,7 @@ func saveUsersToFile(filename string) error {
 
 // Function to hash password
 func hashPassword(password string) string {
-	hasher := sha256.New()
+	hasher := sha512.New()
 	hasher.Write([]byte(password))
 	hashedPassword := hasher.Sum(nil)
 	return hex.EncodeToString(hashedPassword)

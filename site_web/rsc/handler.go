@@ -11,6 +11,8 @@ func RUN() {
 	// Setting up HTTP routes for different endpoints
 	http.HandleFunc("/", ErrorHandler)
 	http.HandleFunc("/home", indexHandler)
+
+	// Loggin
 	http.HandleFunc("/register", RegisterHandler)
 	http.HandleFunc("/confirmRegister", confirmRegisterHandler)
 	http.HandleFunc("/login", loginHandler)
@@ -19,6 +21,7 @@ func RUN() {
 	http.HandleFunc("/dashboard", dashboardHandler)
 	http.HandleFunc("/gestion", gestionHandler)
 	http.HandleFunc("/changeLogin", changeLoginHandler)
+	//
 
 	// Serve static files from the "site_web/static" directory
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("site_web/static"))))
