@@ -15,7 +15,7 @@ CREATE TABLE MyUsers_table
     UNIQUE (email)
 )ENGINE = INNODB;
 
-CREATE TABLE Topics_Table
+CREATE TABLE Topics_Table                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    n
 (
     topic_id      INT AUTO_INCREMENT,
     title         VARCHAR(50)   NOT NULL,
