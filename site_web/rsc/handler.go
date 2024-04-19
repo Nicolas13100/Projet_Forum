@@ -44,5 +44,5 @@ func ErrorHandler(w http.ResponseWriter, r *http.Request) {
 // indexHandler handles requests for the home page
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 
-	renderTemplate(w, "index", nil)
+	renderTemplate(w, "home", nil)
 }

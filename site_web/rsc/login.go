@@ -62,7 +62,7 @@ func confirmRegisterHandler(w http.ResponseWriter, r *http.Request) {
 	} else { // if not , is password valid
 		isValid := validatePassword(password)
 		if !isValid {
-			Invalid := "Password incorect, please use passwords with at least one lowercase letter, one uppercase letter, one digit, and a minimum length of 4 characters"
+			Invalid := "Password incorrect, please use passwords with at least one lowercase letter, one uppercase letter, one digit, and a minimum length of 4 characters"
 			data := CombinedData{
 				Logged: logged,
 				Name:   Invalid,
@@ -232,7 +232,7 @@ func loadUsersFromFile(filename string) error {
 		defer func(file *os.File) {
 			err := file.Close()
 			if err != nil {
-				fmt.Println("error file.close Login.go 225 ", err)
+				fmt.Println("error file.close login.go 225 ", err)
 			}
 		}(file)
 	} else if err != nil {
@@ -254,7 +254,7 @@ func loadUsersFromFile(filename string) error {
 	defer func(file *os.File) {
 		err := file.Close()
 		if err != nil {
-			fmt.Println("error file.close Login.go 247 ", err)
+			fmt.Println("error file.close login.go 247 ", err)
 		}
 	}(file)
 
