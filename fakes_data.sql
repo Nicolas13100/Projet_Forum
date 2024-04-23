@@ -1,59 +1,74 @@
-INSERT INTO MyUsers_table (username, email, password, biography, isAdmin, isModerator, profile_pic) VALUES
-('user1', 'user1@example.com', 'password1', 'Biography of user1', 0, 0, '/profile_pics/user1.jpg'),
-('user2', 'user2@example.com', 'password2', 'Biography of user2', 0, 0, '/profile_pics/user2.jpg'),
-('admin', 'admin@example.com', 'adminpass', 'Administrator', 1, 0, '/profile_pics/admin.jpg');
+-- Insert Users Data
+INSERT INTO users_table (username, email, password, biography, isAdmin, isModerator, profile_pic)
+VALUES ('filmlover123', 'filmlover123@example.com', 'password123', 'Passionate about movies!', 0, 0,
+        'profile_pic1.jpg'),
+       ('cinemafanatic', 'cinemafanatic@example.com', 'securepassword', 'Obsessed with all things cinema.', 0, 0,
+        'profile_pic2.jpg'),
+       ('moviebuff456', 'moviebuff456@example.com', 'moviesarelife', 'Movie enthusiast exploring new genres.', 0, 0,
+        'profile_pic3.jpg');
 
+-- Insert Topics Data
+INSERT INTO Topics_Table (title, body, status, is_private, user_id)
+VALUES ('Favorite Directors', 'Discuss your favorite film directors and their works here!', 1, 0, 1),
+       ('Latest Releases', 'Share your thoughts on the latest movies hitting theaters.', 1, 0, 2),
+       ('Classic Films', 'Rediscover and analyze timeless classics from the golden era of cinema.', 1, 0, 3);
 
-INSERT INTO Topics_Table (title, body, status, is_private, user_id) VALUES
-('Topic 1', 'Body of topic 4', 1, 0, 2),
-('Topic 2', 'Body of topic 5', 1, 1, 1),
-('Topic 3', 'Body of topic 6', 1, 0, 3);
+-- Insert Tags Data
+INSERT INTO Tags_Table (tag_name)
+VALUES ('Action'),
+       ('Drama'),
+       ('Comedy'),
+       ('Sci-Fi'),
+       ('Horror');
 
-INSERT INTO Tags_Table (tag_name) VALUES
-('tag1'),
-('tag2'),
-('tag3');
+-- Insert Messages Data
+INSERT INTO Messages_Table (body, topic_id, user_id)
+VALUES ('I just watched the latest superhero movie and it was amazing!', 2, 1),
+       ('Has anyone seen the new indie film everyone is talking about?', 2, 2),
+       ('Let''s discuss the cinematography in this classic film!', 3, 3);
 
-INSERT INTO Messages_Table (body, topic_id, user_id) VALUES
-('Message 1', 1, 1),
-('Message 2', 1, 2),
-('Message 3', 2, 1);
+-- Insert Admin Logs Data
+INSERT INTO Admin_Logs_Table (action_descrbition)
+VALUES ('Banned user filmlover123 for violating forum rules.'),
+       ('Moderated inappropriate content in topic Latest Releases.');
 
-INSERT INTO Admin_Logs_Table (action_descrbition) VALUES
-('Performed action 1'),
-('Performed action 2'),
-('Performed action 3');
+-- Insert Images Data
+INSERT INTO images_Table (image_origin_name, image_serv_name, topic_id)
+VALUES ('movie_poster.jpg', 'movie_poster_1.jpg', 2),
+       ('cinema_snapshot.png', 'cinema_snapshot_1.png', 3);
 
-INSERT INTO images_Table (image_origin_name, image_serv_name, message_id, topic_id) VALUES
-('image1.jpg', 'image1_serv', 1, 1),
-('image2.jpg', 'image2_serv', 2, 1),
-('image3.jpg', 'image3_serv', 3, 2);
+-- Insert Have Data
+INSERT INTO have (topic_id, tag_id)
+VALUES (2, 1),
+       (2, 4),
+       (3, 2),
+       (3, 3);
 
-INSERT INTO have (topic_id, tag_id) VALUES
-(1, 1),
-(1, 2),
-(2, 2);
+-- Insert Admin Data
+INSERT INTO admin (topic_id, message_id, log_id)
+VALUES (2, 1, 1),
+       (2, 2, 2),
+       (3, 3, 3);
 
-INSERT INTO admin (topic_id, message_id, log_id) VALUES
-(1, 1, 1),
-(2, 2, 2),
-(3, 3, 3);
+-- Insert React Topic Data
+INSERT INTO react_topic (user_id, topic_id, status)
+VALUES (1, 2, 1),
+       (2, 2, 2),
+       (3, 3, 1);
 
-INSERT INTO react_topic (user_id, topic_id, status) VALUES
-(1, 1, 1),
-(1, 2, 2),
-(2, 1, 1);
+-- Insert Friendship Data
+INSERT INTO friendship (sender_id, reciver_id, status, created_at, updated_at)
+VALUES (1, 2, 1, NOW(), NOW()),
+       (2, 3, 1, NOW(), NOW());
 
-INSERT INTO friendship (sender_id, reciver_id, status, created_at, updated_at) VALUES
-(1, 2, 1, NOW(), NOW()),
-(2, 1, 1, NOW(), NOW());
+-- Insert React Message Data
+INSERT INTO react_message (user_id, message_id, status)
+VALUES (1, 1, 1),
+       (2, 1, 2),
+       (3, 3, 1);
 
-INSERT INTO react_message (user_id, message_id, status) VALUES
-(1, 1, 1),
-(2, 1, 2),
-(1, 2, 1);
-
-INSERT INTO follow (user_id, topic_id, followed_date) VALUES
-(1, 1, NOW()),
-(1, 2, NOW()),
-(2, 1, NOW());
+-- Insert Follow Data
+INSERT INTO follow (user_id, topic_id, followed_date)
+VALUES (1, 2, NOW()),
+       (2, 3, NOW()),
+       (3, 1, NOW());
