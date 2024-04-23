@@ -1,83 +1,54 @@
 -- Fake data for users_table
 INSERT INTO users_table (username, email, password, biography, profile_pic)
 VALUES
-    ('john_doe', 'john@example.com', 'password123', 'Hello, I am John Doe.', '/assets/img/john_profile.jpg'),
-    ('jane_smith', 'jane@example.com', 'pass123word', 'Hi there! I am Jane Smith.', '/assets/img/jane_profile.jpg'),
-    ('sam_green', 'sam@example.com', 'green123', 'Nice to meet you all! I am Sam Green.', '/assets/img/sam_profile.jpg');
+    ('user1', 'user1@example.com', 'password123', 'Movie lover and reviewer.', '/assets/img/user1_profile.jpg'),
+    ('user2', 'user2@example.com', 'pass123word', 'Film enthusiast exploring new releases.', '/assets/img/user2_profile.jpg'),
+    ('user3', 'user3@example.com', 'filmlover456', 'Cinema fan always looking for hidden gems.', '/assets/img/user3_profile.jpg');
 
--- Fake data for Topics_Table
-INSERT INTO Topics_Table (title, body, status, user_id)
+-- Fake data for Films_Table
+INSERT INTO Films_Table (title, release_year, director_id, genre_id, description, poster)
 VALUES
-    ('Introduction', 'This is the introduction topic.', 1, 1),
-    ('Technology', 'Discussing the latest in tech.', 1, 2),
-    ('Travel', 'Share your travel experiences here.', 1, 3);
+    ('Inception', 2010, 1, 1, 'A mind-bending heist movie set within the architecture of the mind.', '/assets/img/inception_poster.jpg'),
+    ('The Shawshank Redemption', 1994, 2, 2, 'Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.', '/assets/img/shawshank_redemption_poster.jpg'),
+    ('Pulp Fiction', 1994, 3, 3, 'The lives of two mob hitmen, a boxer, a gangster and his wife, and a pair of diner bandits intertwine in four tales of violence and redemption.', '/assets/img/pulp_fiction_poster.jpg');
 
--- Fake data for Tags_Table
-INSERT INTO Tags_Table (tag_name)
+-- Fake data for Directors_Table
+INSERT INTO Directors_Table (director_name)
 VALUES
-    ('Discussion'),
-    ('Tech'),
-    ('Travel');
+    ('Christopher Nolan'),
+    ('Frank Darabont'),
+    ('Quentin Tarantino');
 
--- Fake data for Messages_Table
-INSERT INTO Messages_Table (body, topic_id, user_id)
+-- Fake data for Genres_Table
+INSERT INTO Genres_Table (genre_name)
 VALUES
-    ('Welcome everyone!', 1, 1),
-    ('What are your thoughts on the new iPhone?', 2, 2),
-    ('I just came back from a trip to Europe!', 3, 3);
+    ('Action'),
+    ('Drama'),
+    ('Crime');
 
--- Fake data for Admin_Logs_Table
-INSERT INTO Admin_Logs_Table (action_descrbition)
+-- Fake data for Actors_Table
+INSERT INTO Actors_Table (actor_name)
 VALUES
-    ('Created a new topic.'),
-    ('Deleted a spam message.'),
-    ('Updated user permissions.');
+    ('Leonardo DiCaprio'),
+    ('Morgan Freeman'),
+    ('Tim Robbins'),
+    ('Samuel L. Jackson'),
+    ('John Travolta'),
+    ('Uma Thurman');
 
--- Fake data for images_Table
-INSERT INTO images_Table (image_origin_name, image_serv_name, message_id, topic_id)
+-- Fake data for Reviews_Table
+INSERT INTO Reviews_Table (film_id, user_id, rating, review_text, review_date)
 VALUES
-    ('profile_pic1.jpg', '/assets/img/profile1.jpg', NULL, NULL),
-    ('profile_pic2.jpg', '/assets/img/profile2.jpg', NULL, NULL),
-    ('profile_pic3.jpg', '/assets/img/profile3.jpg', NULL, NULL);
+    (1, 1, 5, 'Absolutely mind-blowing! A must-watch for any film buff.', '2024-04-20'),
+    (2, 2, 5, 'An emotional rollercoaster. One of the best movies ever made.', '2024-04-21'),
+    (3, 3, 4, 'Pulp Fiction is a masterpiece of storytelling and filmmaking.', '2024-04-22');
 
--- Fake data for have
-INSERT INTO have (topic_id, tag_id)
+-- Fake data for Film_Actors_Table (many-to-many relationship between Films_Table and Actors_Table)
+INSERT INTO Film_Actors_Table (film_id, actor_id)
 VALUES
-    (1, 1),
-    (2, 2),
-    (3, 3);
-
--- Fake data for admin
-INSERT INTO admin (topic_id, message_id, log_id)
-VALUES
-    (1, 1, 1),
-    (2, 2, 2),
-    (3, 3, 3);
-
--- Fake data for react_topic
-INSERT INTO react_topic (user_id, topic_id, status)
-VALUES
-    (1, 2, 1),
-    (2, 1, 2),
-    (3, 3, 1);
-
--- Fake data for friendship
-INSERT INTO friendship (sender_id, reciver_id, status, created_at, updated_at)
-VALUES
-    (1, 2, 1, NOW(), NOW()),
-    (2, 3, 1, NOW(), NOW()),
-    (3, 1, 1, NOW(), NOW());
-
--- Fake data for react_message
-INSERT INTO react_message (user_id, message_id, status)
-VALUES
-    (1, 1, 1),
-    (2, 2, 2),
-    (3, 3, 1);
-
--- Fake data for follow
-INSERT INTO follow (user_id, topic_id, followed_date)
-VALUES
-    (1, 2, NOW()),
-    (2, 1, NOW()),
-    (3, 3, NOW());
+    (1, 1), -- Inception - Leonardo DiCaprio
+    (2, 2), -- The Shawshank Redemption - Morgan Freeman
+    (2, 3), -- The Shawshank Redemption - Tim Robbins
+    (3, 4), -- Pulp Fiction - Samuel L. Jackson
+    (3, 5), -- Pulp Fiction - John Travolta
+    (3, 6); -- Pulp Fiction - Uma Thurman
