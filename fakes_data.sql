@@ -1,4 +1,4 @@
-INSERT INTO MyUsers_table (username, email, password, biography, isAdmin, isModerator, profile_pic) VALUES
+INSERT INTO users_table (username, email, password, biography, isAdmin, isModerator, profile_pic) VALUES
 ('user1', 'user1@example.com', 'password1', 'Biography of user1', 0, 0, '/profile_pics/user1.jpg'),
 ('user2', 'user2@example.com', 'password2', 'Biography of user2', 0, 0, '/profile_pics/user2.jpg'),
 ('admin', 'admin@example.com', 'adminpass', 'Administrator', 1, 0, '/profile_pics/admin.jpg');
