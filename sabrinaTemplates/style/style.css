@@ -221,40 +221,6 @@ body {
   display: flex;
   flex-direction: column;
 }
-
-.stories {
-  width: 100%;
-  background-color: var(--primary);
-  padding: 16px 0;
-  flex-shrink: 0;
-
-  position: relative;
-  overflow: hidden;
-}
-.stories::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-
-  width: 100%;
-  height: 1px;
-  background-color: var(--border);
-}
-.stories__content {
-  display: flex;
-  overflow-x: auto;
-  overflow-y: hidden;
-  gap: 16px;
-  padding: 0 16px;
-  position: relative;
-
-  scroll-behavior: smooth;
-  scrollbar-width: none;
-}
-.stories__content::-webkit-scrollbar {
-  display: none;
-}
-
 .posts {
   display: flex;
   flex-direction: column;
@@ -262,7 +228,7 @@ body {
   gap: 30px;
 }
 
-.stories__left-button,
+
 .post__left-button,
 .stories__right-button,
 .post__right-button {
@@ -280,12 +246,6 @@ body {
   top: 50%;
   transform: translateY(-50%);
   z-index: 1;
-}
-.stories__left-button {
-  left: 10px;
-}
-.stories__right-button {
-  right: 10px;
 }
 .post__left-button {
   left: 16px;
@@ -319,7 +279,7 @@ body {
 .post__profile {
   display: flex;
   gap: 12px;
-  font-size: 19px;
+  font-size:25px;
   font-weight: 900;
   color: var(--text-dark);
 }
@@ -337,7 +297,6 @@ body {
   bottom: 0;
   left: 0;
   right: 0;
-
   border: 1px solid var(--img-border);
   border-radius: 50%;
 }
@@ -365,7 +324,6 @@ body {
   display: flex;
   overflow-y: hidden;
   overflow-x: auto;
-
   width: 100%;
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
@@ -377,10 +335,43 @@ body {
 .post__media {
   width: 100%;
   flex: none;
+  object-fit: contain;
   scroll-snap-align: start;
   scroll-snap-stop: always;
 }
+/*** Post Text *****************************/
+.post-text{
+  width: 100%;
+  display: flex;
+  padding: 10px 20px;
+  flex-direction: column;
+  text-align: center;
+  color: var(--text-dark);
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 200px;
+}
+/*******post-CATEGORY********/
+.post-category{
+ position: absolute;
+ bottom: 15px;
+ right: 5px;
+ gap: 20px;
+}
+/*******BOUTON post-CATEGORY********/
+.category__name{
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-dark);
+  text-decoration: none;
+  text-transform: lowercase;
+  padding:10px 5px;
+  background-color:var(--text-light);
+  border-radius: 30px;
+}
 
+
+/*** Post Footer *****************************/
 .post__footer {
   background-color: var(--primary);
   display: flex;
@@ -432,10 +423,10 @@ body {
   display: flex;
 }
 .post__description {
-display:flex;
+  display:flex;
   align-items:center;
   gap:5px;
-position:absolute;
+   position:absolute;
   right:0;
   bottom:0;
   margin:10px
@@ -507,10 +498,8 @@ position:absolute;
   width: 56px;
   height: 56px;
   border-radius: 50%;
-
   margin-right: 12px;
   flex-shrink: 0;
-
   overflow: hidden;
   position: relative;
 }
@@ -752,8 +741,27 @@ position:absolute;
 
   /* Fix post medias indicators bugs on mobile */
   .post__medias {
-    gap: 1px;
+   height: 80%;
+   gap: 1px;
   }
+  .post-category{
+    position: relative;
+    display:flex;
+    align-items:center;
+    justify-content: space-around;
+    margin: 30px;
+  }
+  /*post content*/
+  .post__content {
+    display: flex;
+    flex-direction: column;
+  }
+  /*** Post Text ***/
+.post-text{
+  font-size:17px;
+  font-weight:500;
+  line-height: 1.7;
+}
   .post__profile {
     display: flex;
     text-align: start;
@@ -770,8 +778,6 @@ position:absolute;
   .content {
     gap: 24px;
   }
-
-
   .posts {
     gap: 24px;
   }
@@ -785,8 +791,8 @@ position:absolute;
   .post__date-time {
     margin-top: 6px;
   }
+  .post {max-height: 100%;}
 }
-
 @media (min-width: 768px) {
   :root {
     --header-height: 54px;
