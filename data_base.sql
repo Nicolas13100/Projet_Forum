@@ -1,12 +1,11 @@
-
-CREATE TABLE MyUsers_table
+CREATE TABLE users_table
 (
     user_id           INT AUTO_INCREMENT,
     username          VARCHAR(26)  NOT NULL,
     email             VARCHAR(50)  NOT NULL,
     password          VARCHAR(50)  NOT NULL,
     registration_date DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP(),
-    last_login_date   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP (),
+    last_login_date   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP(),
     biography         VARCHAR(200),
     isAdmin           TINYINT      NOT NULL DEFAULT 0 CHECK (isAdmin = 0 OR isAdmin = 1),         -- 0 false, 1 true
     isModerator       TINYINT      NOT NULL DEFAULT 0 CHECK (isModerator = 0 OR isModerator = 1), -- 0 false, 1 true
@@ -31,7 +30,7 @@ CREATE TABLE Topics_Table
 
 CREATE TABLE Tags_Table
 (
-    tag_id   INT,
+    tag_id   INT AUTO_INCREMENT,
     tag_name VARCHAR(50) NOT NULL,
     PRIMARY KEY (tag_id),
     UNIQUE (tag_name)

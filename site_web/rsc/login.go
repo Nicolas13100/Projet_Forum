@@ -7,8 +7,10 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"os"
+	"path/filepath"
 	"regexp"
 )
 
@@ -20,45 +22,62 @@ var (
 	logged   bool                    // Variable to track if user is logged in
 )
 
-// RegisterHandler Handler for user registration
-func RegisterHandler(w http.ResponseWriter, r *http.Request) {
-	Invalid := ""
-	data := CombinedData{
-		Logged: logged,
-		Name:   Invalid,
-	}
-	renderTemplate(w, "Register", data)
-}
-
 // Handler for confirming user registration
-func confirmRegisterHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
-		return
-	}
-	// Load users from file
-	if err := loadUsersFromFile("users.json"); err != nil {
-		fmt.Println(err)
-	}
+func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	username := r.FormValue("username")
 	password := r.FormValue("password")
 	mail := r.FormValue("email")
-	// Check if username already exists
-	if _, exists := users[username]; exists {
-		Invalid := "Username already existe"
-		data := CombinedData{
-			Logged: logged,
-			Name:   Invalid,
+	biography := r.FormValue("bio")
+	file, _, err := r.FormFile("avatar")
+	if err != nil {
+		// Handle error
+		fmt.Println("Error retrieving avatar:", err)
+		return
+	}
+	defer func(file multipart.File) {
+		err := file.Close()
+		if err != nil {
+			fmt.Println(err)
 		}
-		renderTemplate(w, "Register", data)
-	} else if _, exists := users[mail]; exists {
-		Invalid := "Mail already existe"
-		data := CombinedData{
-			Logged: logged,
-			Name:   Invalid,
-		}
-		renderTemplate(w, "Register", data)
+	}(file)
 
+	// Read the file content
+	fileBytes, err := io.ReadAll(file)
+	if err != nil {
+		// Handle error
+		fmt.Println("Error reading avatar file:", err)
+		return
+	}
+
+	// Save the image to a location on your server
+	avatarPath := "/assets/images/userAvatar/"
+	filename := username + filepath.Ext(r.FormValue("avatar"))
+
+	// Create the file on the server
+	err = os.WriteFile(avatarPath+filename, fileBytes, 0644)
+	if err != nil {
+		// Handle error
+		fmt.Println("Error saving avatar file:", err)
+		return
+	}
+	// Check if username or email already exist in the database
+	var existingUser int
+	err = db.QueryRow("SELECT COUNT(*) FROM users_table WHERE username = ? OR email = ?", username, mail).Scan(&existingUser)
+	if err != nil {
+		// Handle error
+		fmt.Println("Error checking existing user:", err)
+		return
+	}
+	if existingUser > 0 {
+		if existingUser == 1 {
+			Invalid := "Username or email already exists"
+			data := CombinedData{
+				Logged: logged,
+				Name:   Invalid,
+			}
+			renderTemplate(w, "Register", data)
+			return
+		}
 	} else { // if not , is password valid
 		isValid := validatePassword(password)
 		if !isValid {
@@ -71,18 +90,14 @@ func confirmRegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 		} else { // if password is valid
 			hashedPassword := hashPassword(password)
-			users[username] = User{Username: username, Password: hashedPassword}
 
-			// Save users to a file
-			if err := saveUsersToFile("users.json"); err != nil {
-				http.Error(w, "Failed to register user", http.StatusInternalServerError)
+			err := createUser(username, mail, hashedPassword, biography, avatarPath+filename)
+			if err != nil {
+				fmt.Println(err)
 				return
 			}
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
 		}
-
 	}
-
 }
 
 // Handler for user login

@@ -14,7 +14,6 @@ func RUN() {
 
 	// Loggin
 	http.HandleFunc("/register", RegisterHandler)
-	http.HandleFunc("/confirmRegister", confirmRegisterHandler)
 	http.HandleFunc("/login", loginHandler)
 	http.HandleFunc("/successLogin", successLoginHandler)
 	http.HandleFunc("/logout", logoutHandler)

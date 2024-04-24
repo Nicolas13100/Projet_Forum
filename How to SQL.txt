@@ -1,0 +1,88 @@
+-- Retrieve all content from the Users Table
+SELECT * FROM users_table;
+
+-- Retrieve all content from the Topics Table
+SELECT * FROM Topics_Table;
+
+-- Retrieve all content from the Tags Table
+SELECT * FROM Tags_Table;
+
+-- Retrieve all content from the Messages Table
+SELECT * FROM Messages_Table;
+
+-- Retrieve all content from the Admin Logs Table
+SELECT * FROM Admin_Logs_Table;
+
+-- Retrieve all content from the Images Table
+SELECT * FROM images_Table;
+
+-- Retrieve all content from the Have Table
+SELECT * FROM have;
+
+-- Retrieve all content from the Admin Table
+SELECT * FROM admin;
+
+-- Retrieve all content from the React Topic Table
+SELECT * FROM react_topic;
+
+-- Retrieve all content from the Friendship Table
+SELECT * FROM friendship;
+
+-- Retrieve all content from the React Message Table
+SELECT * FROM react_message;
+
+-- Retrieve all content from the Follow Table
+SELECT * FROM follow;
+
+
+-- Empty the child tables first
+
+-- Empty the Have Table
+DELETE FROM have;
+
+-- Empty the Admin Table
+DELETE FROM admin;
+
+-- Empty the React Topic Table
+DELETE FROM react_topic;
+
+-- Empty the React Message Table
+DELETE FROM react_message;
+
+-- Empty the Friendship Table
+DELETE FROM friendship;
+
+-- Empty the Follow Table
+DELETE FROM follow;
+
+-- Empty the Messages Table
+DELETE FROM Messages_Table;
+
+-- Empty the Images Table
+DELETE FROM images_Table;
+
+-- Empty the Admin Logs Table
+DELETE FROM Admin_Logs_Table;
+
+-- Then empty the parent tables
+
+-- Empty the Topics Table
+DELETE FROM Topics_Table;
+
+-- Empty the Users Table
+DELETE FROM users_table;
+
+
+Drop the foreign key constraint referencing the tag_id column in the have table:
+ALTER TABLE have DROP FOREIGN KEY have_ibfk_2;
+
+
+Replace have_ibfk_2 with the actual name of the foreign key constraint in your database. // or not if none
+
+Once the foreign key constraint is dropped, you can modify the tag_id column to auto-increment:
+ALTER TABLE Tags_Table MODIFY COLUMN tag_id INT AUTO_INCREMENT;
+
+
+After modifying the tag_id column, you can then re-add the foreign key constraint to the have table, if necessary:
+
+ALTER TABLE have ADD CONSTRAINT FOREIGN KEY (tag_id) REFERENCES Tags_Table(tag_id);
