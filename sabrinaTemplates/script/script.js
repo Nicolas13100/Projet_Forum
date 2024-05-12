@@ -30,3 +30,20 @@ toggleThemeBtn.addEventListener('click', () => {
     localStorage.setItem('theme', 'light');
   }
 });
+
+
+//fonctionnalité de commentaires
+const commentButton = document.querySelector('.comment_btn');
+const commentContainer = document.querySelector('.comment_section');
+
+function displayCommentSection() {
+  commentContainer.style.display = 'block';
+}
+//hiden comment
+const hiddenBtn = document.querySelector('.hidden_comment')
+function hideCommentSection(event) {
+  commentContainer.style.display = 'none';
+}
+
+commentButton.addEventListener('click', displayCommentSection);
+hiddenBtn.addEventListener('click', hideCommentSection);
