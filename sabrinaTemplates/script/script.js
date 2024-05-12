@@ -32,18 +32,33 @@ toggleThemeBtn.addEventListener('click', () => {
 });
 
 
-//fonctionnalité de commentaires
-const commentButton = document.querySelector('.comment_btn');
-const commentContainer = document.querySelector('.comment_section');
+// Parcourez chaque POSTS
+posts.forEach((post) => {
+  // Sélection bouton à l'intérieur de cet article
+  const button = post.querySelector('.comment_btn');
+  const commentContainer = post.querySelector('.comment_section');
+const hiddenBtn = post.querySelector('.hidden_comment');
+const textPost =post.querySelector('.post-text');
+const mediaPost=post.querySelector('.post__medias')
+const categoryPost =post.querySelector('.post-category');
+  // Fonction pour afficher la section de commentaires
+  function displayCommentSection() {
+    commentContainer.style.display = 'flex';
+    categoryPost.style.display = 'none';
+    textPost.style.display = 'none';
+    mediaPost.style.display = 'none';
+  }
 
-function displayCommentSection() {
-  commentContainer.style.display = 'block';
-}
-//hiden comment
-const hiddenBtn = document.querySelector('.hidden_comment')
-function hideCommentSection(event) {
-  commentContainer.style.display = 'none';
-}
+  // Fonction pour masquer la section de commentaires
+  function hideCommentSection() {
+    commentContainer.style.display = 'none';
+    categoryPost.style.display = 'flex';
+    textPost.style.display = 'flex';
+    mediaPost.style.display = 'flex';
+  }
 
-commentButton.addEventListener('click', displayCommentSection);
-hiddenBtn.addEventListener('click', hideCommentSection);
+  // gestionnaire pour afficher/masquerla section de commentaires 
+  button.addEventListener('click', displayCommentSection);
+  hiddenBtn.addEventListener('click', hideCommentSection);
+});
+
