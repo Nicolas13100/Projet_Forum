@@ -14,8 +14,6 @@ func RUN() {
 
 	//Admin
 	http.HandleFunc("/modifyTopic", authenticate(modifyTopicHandler))
-	http.HandleFunc("/deleteComment", authenticate(deleteCommentHandler))
-	http.HandleFunc("/deleteTopic", authenticate(deleteTopicHandler))
 	http.HandleFunc("/banUser", authenticate(banUserHandler))
 
 	// Loggin

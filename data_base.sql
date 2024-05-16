@@ -9,6 +9,7 @@ CREATE TABLE users_table
     biography         VARCHAR(200),
     isAdmin           TINYINT      NOT NULL DEFAULT 0 CHECK (isAdmin = 0 OR isAdmin = 1),         -- 0 false, 1 true
     isModerator       TINYINT      NOT NULL DEFAULT 0 CHECK (isModerator = 0 OR isModerator = 1), -- 0 false, 1 true
+    is_deleted        TINYINT      NOT NULL DEFAULT 0 CHECK ( is_deleted = 0 OR is_deleted = 1 ), -- 0 false, 1 true
     profile_pic       VARCHAR(100) NOT NULL,
     PRIMARY KEY (user_id),
     UNIQUE (username),
