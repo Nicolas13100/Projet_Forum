@@ -27,7 +27,7 @@ func RUN() {
 	// Create Topic
 	http.HandleFunc("/createTopic", authenticate(createTopicHandler))
 	http.HandleFunc("/deleteTopic", authenticate(deleteTopicHandler))
-	http.HandleFunc("/deleteTopicComment", authenticate(deleteTopicCommentHandler))
+	http.HandleFunc("/deleteTopicComment", authenticate(deleteCommentHandler))
 
 	// Like Topic
 	http.HandleFunc("/likeTopic", authenticate(likeTopicHandler))
