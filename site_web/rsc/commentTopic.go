@@ -131,3 +131,44 @@ func getBaseMessageTopicID(commentID int) (int, error) {
 	}
 	return topicID, nil
 }
+
+func updateCommentHandler(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value("userID").(int)
+	if !ok {
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "User ID not found in context"}
+		sendResponse(w, response)
+	}
+	messageID, err := strconv.Atoi(r.FormValue("messageID"))
+	if err != nil {
+		response := APIResponse{Status: http.StatusBadRequest, Message: "Invalid message ID"}
+		sendResponse(w, response)
+	}
+	admin, err := checkAdminRights(userID)
+	if err != nil {
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to check admin rights"}
+		sendResponse(w, response)
+	}
+	// Query the database to retrieve the authorID associated with the topicID
+	var authorID int
+	err = db.QueryRow("SELECT user_id FROM Messages_Table WHERE message_id = ?", messageID).Scan(&authorID)
+	if err != nil {
+		response := APIResponse{Status: http.StatusBadRequest, Message: "Impossible to see if user id author"}
+		sendResponse(w, response)
+	}
+
+	if authorID != userID || !admin {
+		response := APIResponse{Status: http.StatusForbidden, Message: "You do not have access to this topic"}
+		sendResponse(w, response)
+	}
+
+	// Update the comment in the database
+	_, err = db.Exec("UPDATE Messages_Table SET body = ? WHERE message_id = ?", r.FormValue("body"), messageID)
+	if err != nil {
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to update comment"}
+		sendResponse(w, response)
+		return
+	}
+
+	response := APIResponse{Status: http.StatusOK, Message: "Comment updated successfully"}
+	sendResponse(w, response)
+}
