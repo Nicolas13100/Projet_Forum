@@ -27,6 +27,7 @@ func likeCommentHandler(w http.ResponseWriter, r *http.Request) {
 	// Convert messageID from string to int
 	messageID, err := strconv.Atoi(messageIDStr)
 	if err != nil {
+		fmt.Println(err)
 		response := APIResponse{Status: http.StatusBadRequest, Message: "Invalid messageID"}
 		sendResponse(w, response)
 		return
@@ -34,7 +35,6 @@ func likeCommentHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Check if the messageID exists and corresponds to an existing message
 	if !messageExists(messageID) {
-		http.Error(w, "Message not found", http.StatusNotFound)
 		response := APIResponse{Status: http.StatusNotFound, Message: "Message not found"}
 		sendResponse(w, response)
 		return
@@ -44,6 +44,7 @@ func likeCommentHandler(w http.ResponseWriter, r *http.Request) {
 	if alreadyLiked(userID, messageID) {
 		err := neutralLikeComment(userID, messageID)
 		if err != nil {
+			fmt.Println(err)
 			response := APIResponse{Status: http.StatusInternalServerError, Message: "Couldn't take off like"}
 			sendResponse(w, response)
 			return
@@ -54,6 +55,7 @@ func likeCommentHandler(w http.ResponseWriter, r *http.Request) {
 	// Add a record to the react_message table indicating that the user liked the comment
 	err = likeComment(userID, messageID)
 	if err != nil {
+		fmt.Println(err)
 		response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to like comment"}
 		sendResponse(w, response)
 		return
@@ -67,6 +69,7 @@ func likeCommentHandler(w http.ResponseWriter, r *http.Request) {
 	// Encode response to JSON
 	jsonResponse, err := json.Marshal(response)
 	if err != nil {
+		fmt.Println(err)
 		response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to encode response"}
 		sendResponse(w, response)
 		return
@@ -104,6 +107,7 @@ func dislikeCommentHandler(w http.ResponseWriter, r *http.Request) {
 	// Convert messageID from string to int
 	messageID, err := strconv.Atoi(messageIDStr)
 	if err != nil {
+		fmt.Println(err)
 		response := APIResponse{Status: http.StatusBadRequest, Message: "Invalid messageID"}
 		sendResponse(w, response)
 		return
@@ -120,6 +124,7 @@ func dislikeCommentHandler(w http.ResponseWriter, r *http.Request) {
 	if alreadyDisliked(userID, messageID) {
 		err := neutralLikeComment(userID, messageID)
 		if err != nil {
+			fmt.Println(err)
 			response := APIResponse{Status: http.StatusInternalServerError, Message: "couldn't take off dislike"}
 			sendResponse(w, response)
 			return
@@ -130,6 +135,7 @@ func dislikeCommentHandler(w http.ResponseWriter, r *http.Request) {
 	// Add a record to the react_message table indicating that the user liked the comment
 	err = dislikeComment(userID, messageID)
 	if err != nil {
+		fmt.Println(err)
 		response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to like comment"}
 		sendResponse(w, response)
 		return
@@ -143,6 +149,7 @@ func dislikeCommentHandler(w http.ResponseWriter, r *http.Request) {
 	// Encode response to JSON
 	jsonResponse, err := json.Marshal(response)
 	if err != nil {
+		fmt.Println(err)
 		response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to encode response"}
 		sendResponse(w, response)
 		return
@@ -153,6 +160,7 @@ func dislikeCommentHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	_, err = w.Write(jsonResponse)
 	if err != nil {
+		fmt.Println(err)
 		response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to write response"}
 		sendResponse(w, response)
 		return

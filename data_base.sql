@@ -46,9 +46,9 @@ CREATE TABLE Messages_Table
     base_message_id INT,
     user_id         INT          NOT NULL,
     PRIMARY KEY (message_id),
-    FOREIGN KEY (topic_id) REFERENCES Topics_Table (topic_id),
-    FOREIGN KEY (base_message_id) REFERENCES Messages_Table (message_id),
-    FOREIGN KEY (user_id) REFERENCES users_Table (user_id)
+    FOREIGN KEY (topic_id) REFERENCES Topics_Table (topic_id) ON DELETE CASCADE,
+    FOREIGN KEY (base_message_id) REFERENCES Messages_Table (message_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users_Table (user_id) ON DELETE CASCADE
 )ENGINE = INNODB;
 
 CREATE TABLE Admin_Logs_Table
@@ -70,8 +70,8 @@ CREATE TABLE images_Table
     PRIMARY KEY (image_id),
     UNIQUE (image_serv_name),
     UNIQUE (image_link),
-    FOREIGN KEY (message_id) REFERENCES Messages_Table (message_id),
-    FOREIGN KEY (topic_id) REFERENCES Topics_Table (topic_id)
+    FOREIGN KEY (message_id) REFERENCES Messages_Table (message_id) ON DELETE CASCADE,
+    FOREIGN KEY (topic_id) REFERENCES Topics_Table (topic_id) ON DELETE CASCADE
 )ENGINE = INNODB;
 
 CREATE TABLE have
@@ -130,7 +130,7 @@ CREATE TABLE follow
 (
     user_id       INT,
     topic_id      INT,
-    followed_date DATETIME NOT NULL,
+    followed_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(),
     PRIMARY KEY (user_id, topic_id),
     FOREIGN KEY (user_id) REFERENCES users_Table (user_id),
     FOREIGN KEY (topic_id) REFERENCES Topics_Table (topic_id)

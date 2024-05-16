@@ -32,7 +32,9 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	// Parse form data including file upload
 	err := r.ParseMultipartForm(10 << 20) // Max size 10 MB
 	if err != nil {
-		http.Error(w, "Failed to parse form data", http.StatusBadRequest)
+		fmt.Println(err)
+		response := APIResponse{Status: http.StatusBadRequest, Message: "Failed to parse form data"}
+		sendResponse(w, response)
 		return
 	}
 
@@ -43,7 +45,9 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	biography := r.FormValue("bio")
 	file, _, err := r.FormFile("avatar")
 	if err != nil {
-		http.Error(w, "Error retrieving avatar: "+err.Error(), http.StatusBadRequest)
+		fmt.Println(err)
+		response := APIResponse{Status: http.StatusBadRequest, Message: "Error retrieving avatar"}
+		sendResponse(w, response)
 		return
 	}
 	defer func(file multipart.File) {
@@ -58,7 +62,9 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	filename := username + filepath.Ext(r.FormValue("avatar"))
 	err = saveProfilePic(file, profilePicPath+filename)
 	if err != nil {
-		http.Error(w, "Error saving profile picture: "+err.Error(), http.StatusInternalServerError)
+		fmt.Println(err)
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "Error saving profile picture"}
+		sendResponse(w, response)
 		return
 	}
 
@@ -66,35 +72,23 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	var existingUser int
 	err = db.QueryRow("SELECT COUNT(*) FROM users_table WHERE username = ? OR email = ?", username, mail).Scan(&existingUser)
 	if err != nil {
-		http.Error(w, "Error checking existing user: "+err.Error(), http.StatusInternalServerError)
+		fmt.Println(err)
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "Error checking existing user"}
+		sendResponse(w, response)
 		return
 	}
 
 	if existingUser > 0 {
-		response := map[string]string{"error": "Username or email already exists"}
-		jsonResponse, _ := json.Marshal(response)
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		_, err := w.Write(jsonResponse)
-		if err != nil {
-			fmt.Println("RegisterHandler: Error writing response after checking existingUser > 0: " + err.Error())
-			return
-		}
+		response := APIResponse{Status: http.StatusBadRequest, Message: "Username or email already exists"}
+		sendResponse(w, response)
 		return
 	}
 
 	// Validate password
 	isValid := validatePassword(password)
 	if !isValid {
-		response := map[string]string{"error": "Password incorrect, please use passwords with at least one lowercase letter, one uppercase letter, one digit, and a minimum length of 8 characters and a special character"}
-		jsonResponse, _ := json.Marshal(response)
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		_, err := w.Write(jsonResponse)
-		if err != nil {
-			fmt.Println("RegisterHandler: Error writing response after validatePassword : " + err.Error())
-			return
-		}
+		response := APIResponse{Status: http.StatusBadRequest, Message: "Password incorrect, please use passwords with at least one lowercase letter, one uppercase letter, one digit, and a minimum length of 8 characters and a special character"}
+		sendResponse(w, response)
 		return
 	}
 
@@ -104,20 +98,13 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	// Create user in the database
 	err = createUser(username, mail, hashedPassword, biography, profilePicPath+filename)
 	if err != nil {
-		http.Error(w, "Error creating user: "+err.Error(), http.StatusInternalServerError)
+		fmt.Println(err)
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "Error creating user"}
+		sendResponse(w, response)
 		return
 	}
-
-	// Return success response
-	response := map[string]string{"message": "User registered successfully"}
-	jsonResponse, _ := json.Marshal(response)
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_, err = w.Write(jsonResponse)
-	if err != nil {
-		fmt.Println("RegisterHandler: Error writing response after User registered successfully : " + err.Error())
-		return
-	}
+	response := APIResponse{Status: http.StatusOK, Message: "User registered successfully"}
+	sendResponse(w, response)
 }
 
 // Function to generate JWT token
@@ -145,18 +132,15 @@ func generateToken(userID int, username string) (string, error) {
 
 // loginHandler Handler for user login
 func loginHandler(w http.ResponseWriter, r *http.Request) {
-	type response struct {
-		Token   string `json:"token,omitempty"`
-		Message string `json:"message,omitempty"`
-		Error   string `json:"error,omitempty"`
-	}
 
 	// Check if the request method is POST
 	if r.Method == "POST" {
 		// Parse form data
 		err := r.ParseForm()
 		if err != nil {
-			http.Error(w, "Failed to parse form data", http.StatusBadRequest)
+			fmt.Println(err)
+			response := APIResponse{Status: http.StatusBadRequest, Message: "Failed to parse form data"}
+			sendResponse(w, response)
 			return
 		}
 
@@ -169,47 +153,33 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		var userID int
 		err = db.QueryRow("SELECT user_id, password FROM users_table WHERE username = ?", username).Scan(&userID, &storedPassword)
 		if err != nil {
-			// Handle error (e.g., user not found)
-			err := json.NewEncoder(w).Encode(response{Error: "Invalid username or password"})
-			if err != nil {
-				fmt.Println("LoginHandler: Error writing response after login : " + err.Error())
-				return
-			}
+			fmt.Println(err)
+			response := APIResponse{Status: http.StatusTeapot, Message: "Invalid username or password"}
+			sendResponse(w, response)
 			return
 		}
 
 		// Verify password
 		if storedPassword != password {
-			err := json.NewEncoder(w).Encode(response{Error: "Invalid username or password"})
-			if err != nil {
-				fmt.Println("LoginHandler: Error writing response after login invalid username or password: " + err.Error())
-				return
-			}
+			response := APIResponse{Status: http.StatusTeapot, Message: "Invalid username or password"}
+			sendResponse(w, response)
 			return
 		}
 
 		// Authentication successful, generate token
 		token, err := generateToken(userID, username)
 		if err != nil {
-			http.Error(w, "Failed to generate token", http.StatusInternalServerError)
+			fmt.Println(err)
+			response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to generate token"}
+			sendResponse(w, response)
 			return
 		}
-
-		// Send the token in the response
-		err = json.NewEncoder(w).Encode(response{Token: token, Message: "Authentication successful"})
-		if err != nil {
-			fmt.Println("LoginHandler: Error writing response after login Authentication successful: " + err.Error())
-			return
-		}
+		response := APIResponse{Status: http.StatusOK, Message: "Authentication successful", Token: token}
+		sendResponse(w, response)
 		return
 	}
-
-	// If request method is not POST
-	err := json.NewEncoder(w).Encode(response{Error: "Method not allowed"})
-	if err != nil {
-		fmt.Println("Not a method of loginHandler : " + err.Error())
-		return
-	}
+	response := APIResponse{Status: http.StatusMethodNotAllowed, Message: "AMethod not allowed"}
+	sendResponse(w, response)
 }
 
 // Middleware function to authenticate requests
@@ -217,7 +187,8 @@ func authenticate(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenString := r.Header.Get("Authorization")
 		if tokenString == "" && !blacklist.IsTokenBlacklisted(tokenString) {
-			http.Error(w, "Unauthorized please log in", http.StatusUnauthorized)
+			response := APIResponse{Status: http.StatusUnauthorized, Message: "Unauthorized please log in"}
+			sendResponse(w, response)
 			return
 		}
 
@@ -226,20 +197,23 @@ func authenticate(next http.HandlerFunc) http.HandlerFunc {
 			return jwtSecret, nil
 		})
 		if err != nil {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			response := APIResponse{Status: http.StatusInternalServerError, Message: "jwt didn't found token"}
+			sendResponse(w, response)
 			return
 		}
 
 		// Verify token validity
 		if !token.Valid {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			response := APIResponse{Status: http.StatusUnauthorized, Message: "Unauthorized Token, please re-log yourself"}
+			sendResponse(w, response)
 			return
 		}
 
 		// Check expiration time
 		claims, ok := token.Claims.(*Claims)
 		if !ok || !claims.VerifyExpiresAt(time.Now().Unix(), true) {
-			http.Error(w, "Token has expired", http.StatusUnauthorized)
+			response := APIResponse{Status: http.StatusUnauthorized, Message: "Token has expired, please re-log yourself"}
+			sendResponse(w, response)
 			return
 		}
 
@@ -258,22 +232,8 @@ func logoutHandler(w http.ResponseWriter, r *http.Request) {
 	// Add the token to the blacklist
 	blacklist.AddToken(tokenString, time.Now().Add(time.Hour*24)) // Blacklist token for 24H
 
-	// Send JSON response
-	response := map[string]string{
-		"message": "Logged out successfully",
-	}
-	jsonResponse, err := json.Marshal(response)
-	if err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_, err = w.Write(jsonResponse)
-	if err != nil {
-		fmt.Println("Error writing JSON response:", err.Error())
-	}
+	response := APIResponse{Status: http.StatusOK, Message: "Logged out successfully"}
+	sendResponse(w, response)
 }
 
 // Handler for dashboard
@@ -281,7 +241,8 @@ func dashboardHandler(w http.ResponseWriter, r *http.Request) {
 	// Retrieve userID from the context
 	userID, ok := r.Context().Value("UserID").(int)
 	if !ok {
-		http.Error(w, "User ID not found in context", http.StatusInternalServerError)
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "User ID not found in context"}
+		sendResponse(w, response)
 		return
 	}
 
@@ -308,23 +269,22 @@ func dashboardHandler(w http.ResponseWriter, r *http.Request) {
 		&userData.ProfilePic,
 	)
 	if err != nil {
-		http.Error(w, "Failed to fetch user data", http.StatusInternalServerError)
+		fmt.Println(err)
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to fetch user data"}
+		sendResponse(w, response)
 		return
 	}
 
 	// Send back the user data in the response
 	jsonResponse, err := json.Marshal(userData)
 	if err != nil {
-		http.Error(w, "Failed to marshal JSON response", http.StatusInternalServerError)
+		fmt.Println(err)
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to marshal JSON response"}
+		sendResponse(w, response)
 		return
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_, err = w.Write(jsonResponse)
-	if err != nil {
-		fmt.Println("Error writing JSON response:", err.Error())
-	}
+	response := APIResponse{Status: http.StatusOK, Message: "Correctly fetched user data", JsonResp: jsonResponse}
+	sendResponse(w, response)
 }
 
 // Handler for changing login credentials
@@ -332,14 +292,17 @@ func changeUserDataHandler(w http.ResponseWriter, r *http.Request) {
 	// Retrieve userID from the context
 	userID, ok := r.Context().Value("userID").(int)
 	if !ok {
-		http.Error(w, "User ID not found in context", http.StatusInternalServerError)
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "User ID not found in context"}
+		sendResponse(w, response)
 		return
 	}
 
 	// Parse form data including file upload
 	err := r.ParseMultipartForm(10 << 20) // Max size 10 MB
 	if err != nil {
-		http.Error(w, "Failed to parse form data", http.StatusBadRequest)
+		fmt.Println(err)
+		response := APIResponse{Status: http.StatusBadRequest, Message: "Failed to parse form data"}
+		sendResponse(w, response)
 		return
 	}
 
@@ -353,7 +316,9 @@ func changeUserDataHandler(w http.ResponseWriter, r *http.Request) {
 	// Handle profile picture upload
 	file, _, err := r.FormFile("profile_pic")
 	if err != nil {
-		http.Error(w, "Error retrieving profile picture: "+err.Error(), http.StatusBadRequest)
+		fmt.Println(err)
+		response := APIResponse{Status: http.StatusBadRequest, Message: "Error retrieving profile picture"}
+		sendResponse(w, response)
 		return
 	}
 	defer func(file multipart.File) {
@@ -368,31 +333,20 @@ func changeUserDataHandler(w http.ResponseWriter, r *http.Request) {
 	filename := strconv.Itoa(userID) + filepath.Ext(r.FormValue("profile_pic"))
 	err = saveProfilePic(file, profilePicPath+filename)
 	if err != nil {
-		http.Error(w, "Error saving profile picture: "+err.Error(), http.StatusInternalServerError)
+		fmt.Println(err)
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "Error saving profile picture"}
+		sendResponse(w, response)
 		return
 	}
 
 	// Update the corresponding fields in the database
 	_, err = db.Exec("UPDATE users_table SET username = ?, email = ?,password = ?, biography = ?,profile_pic = ? WHERE user_id = ?", newUsername, newEmail, newPassWord, newBiography, profilePicPath+filename, userID)
 	if err != nil {
-		http.Error(w, "Failed to update user data", http.StatusInternalServerError)
+		fmt.Println(err)
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to update user data"}
+		sendResponse(w, response)
 		return
 	}
-
-	// Send a success response
-	response := map[string]string{
-		"message": "User data updated successfully",
-	}
-	jsonResponse, err := json.Marshal(response)
-	if err != nil {
-		http.Error(w, "Failed to marshal JSON response", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_, err = w.Write(jsonResponse)
-	if err != nil {
-		fmt.Println("Error writing JSON response:", err.Error())
-	}
+	response := APIResponse{Status: http.StatusOK, Message: "User data updated successfully"}
+	sendResponse(w, response)
 }

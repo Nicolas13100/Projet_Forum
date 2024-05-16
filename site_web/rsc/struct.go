@@ -30,6 +30,8 @@ type Response struct {
 
 // APIResponse represents the structure of the API response
 type APIResponse struct {
-	Status  int    `json:"status"`
-	Message string `json:"message"`
+	Status   int    `json:"status"`
+	Message  string `json:"message"`
+	Token    string `json:"token,omitempty"`
+	JsonResp []byte `json:"json_resp,omitempty"`
 }
