@@ -27,17 +27,17 @@ func RUN() {
 	// Create Topic
 	http.HandleFunc("/createTopic", authenticate(createTopicHandler))
 	http.HandleFunc("/deleteTopic", authenticate(deleteTopicHandler))
-	http.HandleFunc("/deleteTopicComment", authenticate(deleteTopicCommentHandler))
+	http.HandleFunc("/deleteTopicComment", authenticate(deleteCommentHandler))
 
 	// Like Topic
 	http.HandleFunc("/likeTopic", authenticate(likeTopicHandler))
+	http.HandleFunc("/dislikeTopic", authenticate(dislikeTopicHandler))
 
 	// Favorite Topic
 	http.HandleFunc("/favoriteTopic", authenticate(favoriteTopicHandler))
 
 	// Comment Topic
 	http.HandleFunc("/commentTopic", authenticate(commentTopicHandler))
-	http.HandleFunc("/deleteComment", authenticate(deleteCommentHandler))
 	http.HandleFunc("/updateComment", authenticate(updateCommentHandler))
 
 	// Like Comment
