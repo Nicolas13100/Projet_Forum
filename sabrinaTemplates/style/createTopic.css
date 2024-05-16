@@ -1,0 +1,49 @@
+body{
+    background-color: aquamarine;
+}
+.main-form{
+    width: 500px;
+    height: 100vh;
+    margin-top: 20%;
+    display: flex;
+    justify-content: center;
+}
+.class-form{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.form{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    background-color: blue;
+}
+.form__group{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: yellowgreen;
+}
+.form__group input.title{
+width: 200px;
+hei
+}
+.form_category_input_radio{
+
+}
+.form__submit{
+
+}
+.navbar{
+
+}
+.navbar__button{
+
+}

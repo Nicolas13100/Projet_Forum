@@ -108,11 +108,12 @@
       </div>
     </nav>
   </header>
-<main>
-  <form action="#" method="post">
+<main class="main-form">
+  <div class="class-form">
+  <form action="#" method="post" class="form">
     <div class="form__group">
       <label for="title">Title</label>
-      <input type="text" id="title" name="title" placeholder="Title" required />
+      <input class="title" type="text" id="title" name="title" placeholder="Title" required />
     </div>
 
     <div class="form__group">
@@ -125,8 +126,8 @@
       <input type="text" id="tags" name="tags" placeholder="Tags" required />
     </div>
 <div class="form_category_input_radio">
-     <h1>select 3 tags</h1>
-      <input type="radio" id="category" name="category" value="1" required />
+     <h1>select only 3 tags</h1>
+      <input type="radio" id="category" name="category" value="" required />
       <label for="category">Category 1</label>
       <input type="radio" id="category" name="category" value="2" required />
      
@@ -142,6 +143,7 @@
 
     <button type="submit" class="form__submit">Create Topic</button>
   </form>
+</div>
 </main>
 
   <nav class="navbar">

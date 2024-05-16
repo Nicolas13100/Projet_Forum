@@ -5,148 +5,256 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/dgrijalva/jwt-go" // Import JWT library
 	_ "github.com/go-sql-driver/mysql"
 	"io"
-	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
 	"path/filepath"
 	"regexp"
+	"time"
 )
 
 var (
-	users    = make(map[string]User) // Map to store users
-	username string                  // Variable to store username of logged-in user
-	password string                  // Variable to store password of logged-in user
-	mail     string                  // Variable to store mail of logged-in user
-	logged   bool                    // Variable to track if user is logged in
+	logged bool // Variable to track if user is logged in
 )
 
-// Handler for confirming user registration
+// RegisterHandler Handler for confirming user registration
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
+	// Parse form data
+	err := r.ParseForm()
+	if err != nil {
+		http.Error(w, "Failed to parse form data", http.StatusBadRequest)
+		return
+	}
+
+	// Extract user registration data
 	username := r.FormValue("username")
 	password := r.FormValue("password")
 	mail := r.FormValue("email")
 	biography := r.FormValue("bio")
 	file, _, err := r.FormFile("avatar")
 	if err != nil {
-		// Handle error
-		fmt.Println("Error retrieving avatar:", err)
+		http.Error(w, "Error retrieving avatar: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 	defer func(file multipart.File) {
 		err := file.Close()
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println("RegisterHandler: Error closing file : " + err.Error())
 		}
 	}(file)
 
 	// Read the file content
 	fileBytes, err := io.ReadAll(file)
 	if err != nil {
-		// Handle error
-		fmt.Println("Error reading avatar file:", err)
+		http.Error(w, "Error reading avatar file: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	// Save the image to a location on your server
 	avatarPath := "/assets/images/userAvatar/"
 	filename := username + filepath.Ext(r.FormValue("avatar"))
-
-	// Create the file on the server
 	err = os.WriteFile(avatarPath+filename, fileBytes, 0644)
 	if err != nil {
-		// Handle error
-		fmt.Println("Error saving avatar file:", err)
+		http.Error(w, "Error saving avatar file: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 	// Check if username or email already exist in the database
 	var existingUser int
 	err = db.QueryRow("SELECT COUNT(*) FROM users_table WHERE username = ? OR email = ?", username, mail).Scan(&existingUser)
 	if err != nil {
-		// Handle error
-		fmt.Println("Error checking existing user:", err)
+		http.Error(w, "Error checking existing user: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 	if existingUser > 0 {
-		if existingUser == 1 {
-			Invalid := "Username or email already exists"
-			data := CombinedData{
-				Logged: logged,
-				Name:   Invalid,
-			}
-			renderTemplate(w, "Register", data)
+		response := map[string]string{"error": "Username or email already exists"}
+		jsonResponse, _ := json.Marshal(response)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		_, err := w.Write(jsonResponse)
+		if err != nil {
+			fmt.Println("RegisterHandler: Error writing response after checking existingUser > 0: " + err.Error())
 			return
 		}
-	} else { // if not , is password valid
-		isValid := validatePassword(password)
-		if !isValid {
-			Invalid := "Password incorrect, please use passwords with at least one lowercase letter, one uppercase letter, one digit, and a minimum length of 4 characters"
-			data := CombinedData{
-				Logged: logged,
-				Name:   Invalid,
-			}
-			renderTemplate(w, "Register", data)
+		return
+	}
 
-		} else { // if password is valid
-			hashedPassword := hashPassword(password)
+	// Validate password
+	isValid := validatePassword(password)
+	if !isValid {
+		response := map[string]string{"error": "Password incorrect, please use passwords with at least one lowercase letter, one uppercase letter, one digit, and a minimum length of 4 characters"}
+		jsonResponse, _ := json.Marshal(response)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		_, err := w.Write(jsonResponse)
+		if err != nil {
+			fmt.Println("RegisterHandler: Error writing response after validatePassword : " + err.Error())
+			return
+		}
+		return
+	}
 
-			err := createUser(username, mail, hashedPassword, biography, avatarPath+filename)
+	// Hash password
+	hashedPassword := hashPassword(password)
+
+	// Create user in the database
+	err = createUser(username, mail, hashedPassword, biography, avatarPath+filename)
+	if err != nil {
+		http.Error(w, "Error creating user: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Return success response
+	response := map[string]string{"message": "User registered successfully"}
+	jsonResponse, _ := json.Marshal(response)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write(jsonResponse)
+	if err != nil {
+		fmt.Println("RegisterHandler: Error writing response after User registered successfully : " + err.Error())
+		return
+	}
+}
+
+// Secret key for JWT signing. It should be securely stored.
+var jwtSecret = []byte("G45hUthd!3$gfdjHDfg@rT8p*3h$E%98")
+
+// Claims Struct for JWT claims
+type Claims struct {
+	UserID   int    `json:"user_id"`
+	Username string `json:"username"`
+	jwt.StandardClaims
+}
+
+// Function to generate JWT token
+func generateToken(userID int, username string) (string, error) {
+	// Create the claims
+	claims := &Claims{
+		UserID:   userID,
+		Username: username,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(time.Hour * 24).Unix(), // Token expires in 24 hours
+		},
+	}
+
+	// Create the token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	// Sign the token with the secret key and get the complete encoded token as a string
+	tokenString, err := token.SignedString(jwtSecret)
+	if err != nil {
+		return "", err
+	}
+
+	return tokenString, nil
+}
+
+// loginHandler Handler for user login
+func loginHandler(w http.ResponseWriter, r *http.Request) {
+	type response struct {
+		Token   string `json:"token,omitempty"`
+		Message string `json:"message,omitempty"`
+		Error   string `json:"error,omitempty"`
+	}
+
+	// Check if the request method is POST
+	if r.Method == "POST" {
+		// Parse form data
+		err := r.ParseForm()
+		if err != nil {
+			http.Error(w, "Failed to parse form data", http.StatusBadRequest)
+			return
+		}
+
+		// Retrieve username and password from the form
+		username := r.FormValue("username")
+		password := hashPassword(r.FormValue("password"))
+
+		// Query the database to check if the user exists and the password is correct
+		var storedPassword string
+		err = db.QueryRow("SELECT password FROM users_table WHERE username = ?", username).Scan(&storedPassword)
+		if err != nil {
+			// Handle error (e.g., user not found)
+			err := json.NewEncoder(w).Encode(response{Error: "Invalid username or password"})
 			if err != nil {
-				fmt.Println(err)
+				fmt.Println("LoginHandler: Error writing response after login : " + err.Error())
 				return
 			}
+			return
 		}
-	}
-}
 
-// Handler for user login
-func loginHandler(w http.ResponseWriter, r *http.Request) {
-	// Load users from a file on startup
-	if err := loadUsersFromFile("users.json"); err != nil {
-		fmt.Println(err)
-	}
-	// Check if there are query parameters in the URL
-	queryParams := r.URL.Query()
-	// Get a specific query parameter value by key
-	invalidParam := queryParams.Get("invalid")
-	var Invalid string
-	Invalid = ""
-	// Use the obtained query parameter value
-	if invalidParam != "" {
-		Invalid = "Invalid username or password"
-		invalidParam = ""
-	}
+		// Verify password
+		if storedPassword != password {
+			err := json.NewEncoder(w).Encode(response{Error: "Invalid username or password"})
+			if err != nil {
+				fmt.Println("LoginHandler: Error writing response after login invalid username or password: " + err.Error())
+				return
+			}
+			return
+		}
 
-	data := CombinedData{
-		Logged: logged,
-		Name:   Invalid,
-	}
+		// Authentication successful, generate token
+		token, err := generateToken(userID, username)
+		if err != nil {
+			http.Error(w, "Failed to generate token", http.StatusInternalServerError)
+			return
+		}
 
-	renderTemplate(w, "Login", data)
-}
-
-// Handler for successful user login
-func successLoginHandler(w http.ResponseWriter, r *http.Request) {
-
-	if r.Method != http.MethodPost {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+		// Send the token in the response
+		err = json.NewEncoder(w).Encode(response{Token: token, Message: "Authentication successful"})
+		if err != nil {
+			fmt.Println("LoginHandler: Error writing response after login Authentication successful: " + err.Error())
+			return
+		}
 		return
 	}
 
-	username = r.FormValue("username")
-	password = r.FormValue("password")
-
-	user, exists := users[username]
-	if !exists || !checkPasswordHash(password, user.Password) {
-		http.Redirect(w, r, "/login?invalid=true", http.StatusSeeOther)
+	// If request method is not POST
+	err := json.NewEncoder(w).Encode(response{Error: "Method not allowed"})
+	if err != nil {
+		fmt.Println("Not a method of loginHandler : " + err.Error())
 		return
 	}
-	logged = true
-	// Successfully logged in
-	// Handle further operations (e.g., setting session, redirecting, etc.)
-	http.Redirect(w, r, "/home", http.StatusSeeOther)
+}
+
+// Middleware function to authenticate requests
+func authenticate(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		tokenString := r.Header.Get("Authorization")
+		if tokenString == "" {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		// Extract the token from the Authorization header
+		token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+			return jwtSecret, nil
+		})
+		if err != nil {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		// Verify token validity
+		if !token.Valid {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		// Check expiration time
+		claims, ok := token.Claims.(*Claims)
+		if !ok || !claims.VerifyExpiresAt(time.Now().Unix(), true) {
+			http.Error(w, "Token has expired", http.StatusUnauthorized)
+			return
+		}
+
+		// Token is valid and still within time
+		next.ServeHTTP(w, r)
+	}
 }
 
 // Handler for user logout
@@ -203,22 +311,6 @@ func changeLoginHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Password updated successfully.")
 	ResetUserValue()
 	http.Redirect(w, r, "/", http.StatusSeeOther)
-}
-
-// Function to save users to a file for register func
-func saveUsersToFile(filename string) error {
-	data, err := json.Marshal(users)
-	if err != nil {
-		return err
-	}
-
-	if err := os.WriteFile(filename, data, 0644); err != nil {
-		log.Println("Error writing updated user data:", err)
-		return err
-	}
-
-	log.Println("User data successfully updated")
-	return nil
 }
 
 // Function to hash password
