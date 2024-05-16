@@ -12,7 +12,7 @@ type UserData struct {
 	Fav []int `json:"fav"`
 }
 
-// struct for search
+// GameInfo struct for search
 type GameInfo struct {
 	GameId int `json:"game"`
 }
@@ -21,4 +21,15 @@ type CombinedData struct {
 	Result interface{}
 	Name   string
 	Logged bool
+}
+
+// Response struct for API response
+type Response struct {
+	Message string `json:"message"`
+}
+
+// APIResponse represents the structure of the API response
+type APIResponse struct {
+	Status  int    `json:"status"`
+	Message string `json:"message"`
 }
