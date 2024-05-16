@@ -14,8 +14,6 @@ func RUN() {
 
 	//Admin
 	http.HandleFunc("/modifyTopic", authenticate(modifyTopicHandler))
-	http.HandleFunc("/deleteComment", authenticate(deleteCommentHandler))
-	http.HandleFunc("/deleteTopic", authenticate(deleteTopicHandler))
 	http.HandleFunc("/banUser", authenticate(banUserHandler))
 
 	// Loggin
@@ -29,7 +27,6 @@ func RUN() {
 	// Create Topic
 	http.HandleFunc("/createTopic", authenticate(createTopicHandler))
 	http.HandleFunc("/deleteTopic", authenticate(deleteTopicHandler))
-	http.HandleFunc("/updateTopic", authenticate(updateTopicHandler))
 	http.HandleFunc("/deleteTopicComment", authenticate(deleteTopicCommentHandler))
 
 	// Like Topic
