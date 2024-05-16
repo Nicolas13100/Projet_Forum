@@ -36,8 +36,7 @@ func RUN() {
 	http.HandleFunc("/favoriteTopic", authenticate(favoriteTopicHandler))
 
 	// Comment Topic
-	http.HandleFunc("/commentTopic", authenticate(commentTopicHandler))
-	http.HandleFunc("/deleteComment", authenticate(deleteCommentHandler))
+	http.HandleFunc("/commentTopic", authenticate(commentHandler))
 	http.HandleFunc("/updateComment", authenticate(updateCommentHandler))
 
 	// Like Comment

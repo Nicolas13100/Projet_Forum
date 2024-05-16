@@ -27,3 +27,9 @@ type CombinedData struct {
 type Response struct {
 	Message string `json:"message"`
 }
+
+// APIResponse represents the structure of the API response
+type APIResponse struct {
+	Status  int    `json:"status"`
+	Message string `json:"message"`
+}
