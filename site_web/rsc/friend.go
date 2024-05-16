@@ -165,19 +165,22 @@ func deleteFriendHandler(w http.ResponseWriter, r *http.Request) {
 	// Retrieve userID from the context
 	userID, ok := r.Context().Value("userID").(int)
 	if !ok {
-		http.Error(w, "User ID not found in context", http.StatusInternalServerError)
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "User ID not found in context"}
+		sendResponse(w, response)
 		return
 	}
 
 	friendIDStr := r.FormValue("friendID")
 	if friendIDStr == "" {
-		http.Error(w, "friendID parameter is required", http.StatusBadRequest)
+		response := APIResponse{Status: http.StatusBadRequest, Message: "friendID parameter is required"}
+		sendResponse(w, response)
 		return
 	}
 
 	friendID, err := strconv.Atoi(friendIDStr)
 	if err != nil {
-		http.Error(w, "Invalid friendID parameter", http.StatusBadRequest)
+		response := APIResponse{Status: http.StatusBadRequest, Message: "Invalid friendID parameter"}
+		sendResponse(w, response)
 		return
 	}
 
@@ -185,17 +188,20 @@ func deleteFriendHandler(w http.ResponseWriter, r *http.Request) {
 	var status int
 	err = db.QueryRow("SELECT status FROM friendship WHERE (sender_id = ? AND reciver_id = ?) OR (sender_id = ? AND reciver_id = ?)", userID, friendID, friendID, userID).Scan(&status)
 	if errors.Is(err, sql.ErrNoRows) {
-		http.Error(w, "No friendship found with the specified user", http.StatusBadRequest)
+		response := APIResponse{Status: http.StatusBadRequest, Message: "No friendship found with the specified user"}
+		sendResponse(w, response)
 		return
 	} else if err != nil {
-		http.Error(w, "Error checking friendship", http.StatusInternalServerError)
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "Error checking friendship"}
+		sendResponse(w, response)
 		return
 	}
 
 	// Delete the friendship
 	_, err = db.Exec("DELETE FROM friendship WHERE (sender_id = ? AND reciver_id = ?) OR (sender_id = ? AND reciver_id = ?)", userID, friendID, friendID, userID)
 	if err != nil {
-		http.Error(w, "Error deleting friendship", http.StatusInternalServerError)
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "Error deleting friendship"}
+		sendResponse(w, response)
 		return
 	}
 
@@ -204,6 +210,8 @@ func deleteFriendHandler(w http.ResponseWriter, r *http.Request) {
 	_, err = w.Write([]byte("Friend successfully deleted"))
 	if err != nil {
 		fmt.Println("delete friendship write", err)
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "Error writing ok answer"}
+		sendResponse(w, response)
 		return
 	}
 }

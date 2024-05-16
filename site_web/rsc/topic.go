@@ -12,14 +12,16 @@ func createTopicHandler(w http.ResponseWriter, r *http.Request) {
 
 	//check method
 	if r.Method != "POST" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		response := APIResponse{Status: http.StatusMethodNotAllowed, Message: "Method not allowed"}
+		sendResponse(w, response)
 		return
 	}
 
 	//parse data
 	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
-		http.Error(w, "Failed to parse form data", http.StatusBadRequest)
+		response := APIResponse{Status: http.StatusBadRequest, Message: "Failed to parse form data"}
+		sendResponse(w, response)
 		return
 	}
 
@@ -30,17 +32,19 @@ func createTopicHandler(w http.ResponseWriter, r *http.Request) {
 	//check image
 	userID, ok := r.Context().Value("userID").(int)
 	if !ok {
-		http.Error(w, "User ID not found in context", http.StatusInternalServerError)
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "User ID not found in context"}
+		sendResponse(w, response)
 		return
 	}
 
-	if title == "" || body == "" || status == "" || userID != 0 {
-		http.Error(w, "Missing required form fields", http.StatusBadRequest)
+	if title == "" || body == "" || status == "" || userID != 0 )
+		response := APIResponse{Status: http.StatusBadRequest, Message: "Missing required form fields"}
+		sendResponse(w, response)
 		return
 	}
 
 	// Insert user into database
-	stmt, err := db.Prepare("INSERT INTO Topics_Table (title, body, status, userID) VALUES (?, ?, ?)") //check user_id
+	stmt, err := db.Prepare("INSERT INTO Topics_Table (title, body, status, user_id) VALUES (?, ?, ?,?)") //check user_id
 
 	if err != nil {
 		http.Error(w, "Failed to prepare SQL statement", http.StatusInternalServerError)
@@ -52,7 +56,7 @@ func createTopicHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(err)
 		}
 	}(stmt)
-	_, err = stmt.Exec(title, body, status)
+	_, err = stmt.Exec(title, body, status, userID)
 	if err != nil {
 		http.Error(w, "Failed to execute SQL statement", http.StatusInternalServerError)
 		return
