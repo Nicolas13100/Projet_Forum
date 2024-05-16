@@ -1,18 +1,15 @@
 package API
 
 import (
-	"crypto/sha512"
-	"encoding/hex"
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/dgrijalva/jwt-go" // Import JWT library
 	_ "github.com/go-sql-driver/mysql"
-	"io"
 	"mime/multipart"
 	"net/http"
-	"os"
 	"path/filepath"
-	"regexp"
+	"strconv"
 	"time"
 )
 
@@ -20,10 +17,20 @@ var (
 	logged bool // Variable to track if user is logged in
 )
 
+// Secret key for JWT signing. It should be securely stored.
+var jwtSecret = []byte("G45hUthd!3$gfdjHDfg@rT8p*3h$E%98")
+
+// Claims Struct for JWT claims
+type Claims struct {
+	UserID   int    `json:"user_id"`
+	Username string `json:"username"`
+	jwt.StandardClaims
+}
+
 // RegisterHandler Handler for confirming user registration
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
-	// Parse form data
-	err := r.ParseForm()
+	// Parse form data including file upload
+	err := r.ParseMultipartForm(10 << 20) // Max size 10 MB
 	if err != nil {
 		http.Error(w, "Failed to parse form data", http.StatusBadRequest)
 		return
@@ -46,19 +53,12 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}(file)
 
-	// Read the file content
-	fileBytes, err := io.ReadAll(file)
-	if err != nil {
-		http.Error(w, "Error reading avatar file: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
 	// Save the image to a location on your server
-	avatarPath := "/assets/images/userAvatar/"
+	profilePicPath := "/assets/images/userAvatar/"
 	filename := username + filepath.Ext(r.FormValue("avatar"))
-	err = os.WriteFile(avatarPath+filename, fileBytes, 0644)
+	err = saveProfilePic(file, profilePicPath+filename)
 	if err != nil {
-		http.Error(w, "Error saving avatar file: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Error saving profile picture: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -86,7 +86,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	// Validate password
 	isValid := validatePassword(password)
 	if !isValid {
-		response := map[string]string{"error": "Password incorrect, please use passwords with at least one lowercase letter, one uppercase letter, one digit, and a minimum length of 4 characters"}
+		response := map[string]string{"error": "Password incorrect, please use passwords with at least one lowercase letter, one uppercase letter, one digit, and a minimum length of 8 characters and a special character"}
 		jsonResponse, _ := json.Marshal(response)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
@@ -102,7 +102,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	hashedPassword := hashPassword(password)
 
 	// Create user in the database
-	err = createUser(username, mail, hashedPassword, biography, avatarPath+filename)
+	err = createUser(username, mail, hashedPassword, biography, profilePicPath+filename)
 	if err != nil {
 		http.Error(w, "Error creating user: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -118,16 +118,6 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("RegisterHandler: Error writing response after User registered successfully : " + err.Error())
 		return
 	}
-}
-
-// Secret key for JWT signing. It should be securely stored.
-var jwtSecret = []byte("G45hUthd!3$gfdjHDfg@rT8p*3h$E%98")
-
-// Claims Struct for JWT claims
-type Claims struct {
-	UserID   int    `json:"user_id"`
-	Username string `json:"username"`
-	jwt.StandardClaims
 }
 
 // Function to generate JWT token
@@ -176,7 +166,8 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 
 		// Query the database to check if the user exists and the password is correct
 		var storedPassword string
-		err = db.QueryRow("SELECT password FROM users_table WHERE username = ?", username).Scan(&storedPassword)
+		var userID int
+		err = db.QueryRow("SELECT user_id, password FROM users_table WHERE username = ?", username).Scan(&userID, &storedPassword)
 		if err != nil {
 			// Handle error (e.g., user not found)
 			err := json.NewEncoder(w).Encode(response{Error: "Invalid username or password"})
@@ -225,8 +216,8 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 func authenticate(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenString := r.Header.Get("Authorization")
-		if tokenString == "" {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		if tokenString == "" && !blacklist.IsTokenBlacklisted(tokenString) {
+			http.Error(w, "Unauthorized please log in", http.StatusUnauthorized)
 			return
 		}
 
@@ -253,202 +244,155 @@ func authenticate(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		// Token is valid and still within time
-		next.ServeHTTP(w, r)
+		// Pass userID to the next handler
+		ctx := context.WithValue(r.Context(), "UserID", claims.UserID)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	}
 }
 
 // Handler for user logout
 func logoutHandler(w http.ResponseWriter, r *http.Request) {
-	ResetUserValue()
-	http.Redirect(w, r, "/home", http.StatusSeeOther)
+	// Extract token from the request headers
+	tokenString := r.Header.Get("Authorization")
+
+	// Add the token to the blacklist
+	blacklist.AddToken(tokenString, time.Now().Add(time.Hour*24)) // Blacklist token for 24H
+
+	// Send JSON response
+	response := map[string]string{
+		"message": "Logged out successfully",
+	}
+	jsonResponse, err := json.Marshal(response)
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write(jsonResponse)
+	if err != nil {
+		fmt.Println("Error writing JSON response:", err.Error())
+	}
 }
 
 // Handler for dashboard
 func dashboardHandler(w http.ResponseWriter, r *http.Request) {
-	if !logged {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+	// Retrieve userID from the context
+	userID, ok := r.Context().Value("UserID").(int)
+	if !ok {
+		http.Error(w, "User ID not found in context", http.StatusInternalServerError)
 		return
 	}
-	autoData := struct {
-		Name   string
-		Logged bool
-	}{
-		Name:   username,
-		Logged: logged,
-	}
-	renderTemplate(w, "dashboard", autoData)
-}
 
-// Handler for gestion
-func gestionHandler(w http.ResponseWriter, r *http.Request) {
-	if !logged {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+	// Query the database to fetch user data
+	var userData struct {
+		Username         string    `json:"username"`
+		Email            string    `json:"email"`
+		RegistrationDate time.Time `json:"registration_date"`
+		LastLoginDate    time.Time `json:"last_login_date"`
+		Biography        string    `json:"biography"`
+		IsAdmin          bool      `json:"isAdmin"`
+		IsModerator      bool      `json:"isModerator"`
+		ProfilePic       string    `json:"profile_pic"`
+	}
+
+	err := db.QueryRow("SELECT username, email, registration_date, last_login_date, biography, isAdmin, isModerator, profile_pic FROM users_table WHERE user_id = ?", userID).Scan(
+		&userData.Username,
+		&userData.Email,
+		&userData.RegistrationDate,
+		&userData.LastLoginDate,
+		&userData.Biography,
+		&userData.IsAdmin,
+		&userData.IsModerator,
+		&userData.ProfilePic,
+	)
+	if err != nil {
+		http.Error(w, "Failed to fetch user data", http.StatusInternalServerError)
 		return
 	}
-	data := struct {
-		PlayerName string
-		Logged     bool
-	}{
-		PlayerName: username,
-		Logged:     logged,
+
+	// Send back the user data in the response
+	jsonResponse, err := json.Marshal(userData)
+	if err != nil {
+		http.Error(w, "Failed to marshal JSON response", http.StatusInternalServerError)
+		return
 	}
-	renderTemplate(w, "gestion", data)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write(jsonResponse)
+	if err != nil {
+		fmt.Println("Error writing JSON response:", err.Error())
+	}
 }
 
 // Handler for changing login credentials
-func changeLoginHandler(w http.ResponseWriter, r *http.Request) {
-	if !logged {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+func changeUserDataHandler(w http.ResponseWriter, r *http.Request) {
+	// Retrieve userID from the context
+	userID, ok := r.Context().Value("userID").(int)
+	if !ok {
+		http.Error(w, "User ID not found in context", http.StatusInternalServerError)
 		return
 	}
-	oldpassword := r.FormValue("oldpassword")
-	newpassword := r.FormValue("newpassword")
-	err := updateUserCredentials(username, oldpassword, newpassword)
+
+	// Parse form data including file upload
+	err := r.ParseMultipartForm(10 << 20) // Max size 10 MB
 	if err != nil {
-		fmt.Println("Error:", err)
+		http.Error(w, "Failed to parse form data", http.StatusBadRequest)
 		return
 	}
-	fmt.Println("Password updated successfully.")
-	ResetUserValue()
-	http.Redirect(w, r, "/", http.StatusSeeOther)
-}
 
-// Function to hash password
-func hashPassword(password string) string {
-	hasher := sha512.New()
-	hasher.Write([]byte(password))
-	hashedPassword := hasher.Sum(nil)
-	return hex.EncodeToString(hashedPassword)
-}
+	// Retrieve new user data from the form
+	newUsername := r.FormValue("username")
+	newEmail := r.FormValue("email")
+	newBiography := r.FormValue("biography")
+	newPassWord := hashPassword(r.FormValue("password"))
+	// You can retrieve other fields similarly
 
-// Function to check if password matches hashed password
-func checkPasswordHash(password, hash string) bool {
-	hashedPassword := hashPassword(password)
-	return hashedPassword == hash
-}
-
-// Function to load users from a file for register func
-func loadUsersFromFile(filename string) error {
-	// Check if the file exists
-	fileInfo, err := os.Stat(filename)
-	if os.IsNotExist(err) {
-		// Create an empty users.json file if it doesn't exist
-		file, err := os.Create(filename)
-		if err != nil {
-			return err
-		}
-		defer func(file *os.File) {
-			err := file.Close()
-			if err != nil {
-				fmt.Println("error file.close login.go 225 ", err)
-			}
-		}(file)
-	} else if err != nil {
-		return err
-	}
-
-	// Check if the file is empty
-	if fileInfo != nil && fileInfo.Size() == 0 {
-		// File exists but is empty, so initialize users as an empty map
-		users = make(map[string]User)
-		return nil
-	}
-
-	// Load users from the file
-	file, err := os.Open(filename)
+	// Handle profile picture upload
+	file, _, err := r.FormFile("profile_pic")
 	if err != nil {
-		return err
+		http.Error(w, "Error retrieving profile picture: "+err.Error(), http.StatusBadRequest)
+		return
 	}
-	defer func(file *os.File) {
+	defer func(file multipart.File) {
 		err := file.Close()
 		if err != nil {
-			fmt.Println("error file.close login.go 247 ", err)
+			fmt.Println("Error closing file:", err.Error())
 		}
 	}(file)
 
-	data, err := io.ReadAll(file)
+	// Save the profile picture to a location on your server
+	profilePicPath := "/assets/images/userAvatar/"
+	filename := strconv.Itoa(userID) + filepath.Ext(r.FormValue("profile_pic"))
+	err = saveProfilePic(file, profilePicPath+filename)
 	if err != nil {
-		return err
+		http.Error(w, "Error saving profile picture: "+err.Error(), http.StatusInternalServerError)
+		return
 	}
 
-	// Check if the file contains valid JSON data
-	if len(data) == 0 {
-		// File is empty or doesn't contain valid JSON
-		return nil
-	}
-
-	users = make(map[string]User)
-	if err := json.Unmarshal(data, &users); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// ResetUserValue Function to reset user values
-func ResetUserValue() {
-	logged = false
-	username = ""
-	password = ""
-}
-
-// Function to update user credentials
-func updateUserCredentials(name, oldPassword, newPassword string) error {
-	// Read the JSON file into memory
-	raw, err := os.ReadFile("users.json")
+	// Update the corresponding fields in the database
+	_, err = db.Exec("UPDATE users_table SET username = ?, email = ?,password = ?, biography = ?,profile_pic = ? WHERE user_id = ?", newUsername, newEmail, newPassWord, newBiography, profilePicPath+filename, userID)
 	if err != nil {
-		return err
+		http.Error(w, "Failed to update user data", http.StatusInternalServerError)
+		return
 	}
 
-	// Define a struct that matches your JSON structure
-	var data map[string]User // Map where keys are strings and values are User structs
-
-	// Unmarshal the JSON into the defined struct
-	if err := json.Unmarshal(raw, &data); err != nil {
-		return err
+	// Send a success response
+	response := map[string]string{
+		"message": "User data updated successfully",
+	}
+	jsonResponse, err := json.Marshal(response)
+	if err != nil {
+		http.Error(w, "Failed to marshal JSON response", http.StatusInternalServerError)
+		return
 	}
 
-	// Check if the user exists in the map
-	user, exists := data[name]
-	if !exists {
-		return fmt.Errorf("user not found")
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write(jsonResponse)
+	if err != nil {
+		fmt.Println("Error writing JSON response:", err.Error())
 	}
-
-	if !checkPasswordHash(oldPassword, user.Password) {
-		return fmt.Errorf("incorrect password")
-	}
-
-	if newPassword != "" {
-		// Update the password
-		user.Password = hashPassword(newPassword)
-
-		// Update the user in the map
-		data[name] = user
-
-		// Marshal the updated data back to JSON
-		updatedJSON, err := json.MarshalIndent(data, "", "  ")
-		if err != nil {
-			return err
-		}
-
-		// Write the updated JSON back to the file
-		err = os.WriteFile("users.json", updatedJSON, 0644)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// Function to validate the password
-func validatePassword(password string) bool {
-	// Define the regex pattern
-	pattern := `(?i)[a-z]+.*[A-Z]+.*\d+.+`
-
-	// Compile the regex pattern into a regex object
-	regex := regexp.MustCompile(pattern)
-
-	// Check if the password matches the regex pattern
-	return regex.MatchString(password)
 }

@@ -15,11 +15,9 @@ func RUN() {
 	// Loggin
 	http.HandleFunc("/register", RegisterHandler)
 	http.HandleFunc("/login", loginHandler)
-	http.HandleFunc("/logout", logoutHandler)
-	http.HandleFunc("/dashboard", dashboardHandler)
-	http.HandleFunc("/gestion", gestionHandler)
-	http.HandleFunc("/changeLogin", changeLoginHandler)
-	http.HandleFunc("/protected", authenticate(protectedEndpoint))
+	http.HandleFunc("/logout", authenticate(logoutHandler))
+	http.HandleFunc("/dashboard", authenticate(dashboardHandler))
+	http.HandleFunc("/changeUserData", authenticate(changeUserDataHandler))
 	//
 
 	// Serve static files from the "site_web/static" directory
