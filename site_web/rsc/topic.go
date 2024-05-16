@@ -6,7 +6,6 @@ import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"net/http"
-	"strconv"
 )
 
 func createTopicHandler(w http.ResponseWriter, r *http.Request) {
@@ -72,40 +71,47 @@ func createTopicHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteTopicHandler(w http.ResponseWriter, r *http.Request) {
+
 	// Check method
 	if r.Method != "DELETE" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	chercher userid du topic
+	user_id, ok := r.Context().Value("userID").(int)
+	if !ok {
+		http.Error(w, "User ID not found in context", http.StatusInternalServerError)
+		return
+	}
+
+	// Retrieve topicID from the request
+	topicID := r.FormValue("topicID")
+
+	var authorID int
+
+	err := db.QueryRow("SELECT user_id FROM Topics_Table WHERE topic_id = ?", topicID).Scan(&authorID)
+	if err != nil {
+		http.Error(w, "Topic not found", http.StatusNotFound)
+		return
+	}
 
 	//verifier si IDuser est admin ou si c'est le proprietaire du topic
-	if adminID == userID {
-		return
-	}else if userID == userID {
+	isAdmin, err := checkAdminRights(user_id)
+
+	if err != nil {
+		http.Error(w, "Failed to check admin rights", http.StatusInternalServerError)
 		return
 	}
-
+	if authorID != user_id {
+		return
+	} else if !isAdmin {
+		return
+	}
 
 	// Parse data
-	err := r.ParseForm()
+	err = r.ParseForm()
 	if err != nil {
 		http.Error(w, "Failed to parse form data", http.StatusBadRequest)
-		return
-	}
-
-	// Extract topic ID from URL parameters
-	topicID := r.FormValue("id")
-	if topicID == "" {
-		http.Error(w, "Topic ID is missing", http.StatusBadRequest)
-		return
-	}
-
-	// Convert topicID to integer
-	topicIDInt, err := strconv.Atoi(topicID)
-	if err != nil {
-		http.Error(w, "Invalid topic ID", http.StatusBadRequest)
 		return
 	}
 
@@ -117,7 +123,7 @@ func deleteTopicHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(topicIDInt)
+	_, err = stmt.Exec(topicID)
 	if err != nil {
 		http.Error(w, "Failed to execute SQL statement", http.StatusInternalServerError)
 		return
@@ -138,4 +144,3 @@ func deleteTopicHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-
