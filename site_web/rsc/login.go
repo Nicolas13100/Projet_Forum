@@ -1,362 +1,352 @@
 package API
 
 import (
-	"crypto/sha512"
-	"encoding/hex"
+	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/dgrijalva/jwt-go" // Import JWT library
 	_ "github.com/go-sql-driver/mysql"
-	"io"
-	"log"
 	"mime/multipart"
 	"net/http"
-	"os"
 	"path/filepath"
-	"regexp"
+	"strconv"
+	"time"
 )
 
 var (
-	users    = make(map[string]User) // Map to store users
-	username string                  // Variable to store username of logged-in user
-	password string                  // Variable to store password of logged-in user
-	mail     string                  // Variable to store mail of logged-in user
-	logged   bool                    // Variable to track if user is logged in
+	logged bool // Variable to track if user is logged in
 )
 
-// Handler for confirming user registration
+// Secret key for JWT signing. It should be securely stored.
+var jwtSecret = []byte("G45hUthd!3$gfdjHDfg@rT8p*3h$E%98")
+
+// Claims Struct for JWT claims
+type Claims struct {
+	UserID   int    `json:"user_id"`
+	Username string `json:"username"`
+	jwt.StandardClaims
+}
+
+// RegisterHandler Handler for confirming user registration
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
+	// Parse form data including file upload
+	err := r.ParseMultipartForm(10 << 20) // Max size 10 MB
+	if err != nil {
+		fmt.Println(err)
+		response := APIResponse{Status: http.StatusBadRequest, Message: "Failed to parse form data"}
+		sendResponse(w, response)
+		return
+	}
+
+	// Extract user registration data
 	username := r.FormValue("username")
 	password := r.FormValue("password")
 	mail := r.FormValue("email")
 	biography := r.FormValue("bio")
 	file, _, err := r.FormFile("avatar")
 	if err != nil {
-		// Handle error
-		fmt.Println("Error retrieving avatar:", err)
+		fmt.Println(err)
+		response := APIResponse{Status: http.StatusBadRequest, Message: "Error retrieving avatar"}
+		sendResponse(w, response)
 		return
 	}
 	defer func(file multipart.File) {
 		err := file.Close()
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println("RegisterHandler: Error closing file : " + err.Error())
 		}
 	}(file)
 
-	// Read the file content
-	fileBytes, err := io.ReadAll(file)
-	if err != nil {
-		// Handle error
-		fmt.Println("Error reading avatar file:", err)
-		return
-	}
-
 	// Save the image to a location on your server
-	avatarPath := "/assets/images/userAvatar/"
+	profilePicPath := "/assets/images/userAvatar/"
 	filename := username + filepath.Ext(r.FormValue("avatar"))
-
-	// Create the file on the server
-	err = os.WriteFile(avatarPath+filename, fileBytes, 0644)
+	err = saveProfilePic(file, profilePicPath+filename)
 	if err != nil {
-		// Handle error
-		fmt.Println("Error saving avatar file:", err)
+		fmt.Println(err)
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "Error saving profile picture"}
+		sendResponse(w, response)
 		return
 	}
+
 	// Check if username or email already exist in the database
 	var existingUser int
 	err = db.QueryRow("SELECT COUNT(*) FROM users_table WHERE username = ? OR email = ?", username, mail).Scan(&existingUser)
 	if err != nil {
-		// Handle error
-		fmt.Println("Error checking existing user:", err)
+		fmt.Println(err)
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "Error checking existing user"}
+		sendResponse(w, response)
 		return
 	}
+
 	if existingUser > 0 {
-		if existingUser == 1 {
-			Invalid := "Username or email already exists"
-			data := CombinedData{
-				Logged: logged,
-				Name:   Invalid,
-			}
-			renderTemplate(w, "Register", data)
+		response := APIResponse{Status: http.StatusBadRequest, Message: "Username or email already exists"}
+		sendResponse(w, response)
+		return
+	}
+
+	// Validate password
+	isValid := validatePassword(password)
+	if !isValid {
+		response := APIResponse{Status: http.StatusBadRequest, Message: "Password incorrect, please use passwords with at least one lowercase letter, one uppercase letter, one digit, and a minimum length of 8 characters and a special character"}
+		sendResponse(w, response)
+		return
+	}
+
+	// Hash password
+	hashedPassword := hashPassword(password)
+
+	// Create user in the database
+	err = createUser(username, mail, hashedPassword, biography, profilePicPath+filename)
+	if err != nil {
+		fmt.Println(err)
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "Error creating user"}
+		sendResponse(w, response)
+		return
+	}
+	response := APIResponse{Status: http.StatusOK, Message: "User registered successfully"}
+	sendResponse(w, response)
+}
+
+// Function to generate JWT token
+func generateToken(userID int, username string) (string, error) {
+	// Create the claims
+	claims := &Claims{
+		UserID:   userID,
+		Username: username,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(time.Hour * 24).Unix(), // Token expires in 24 hours
+		},
+	}
+
+	// Create the token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	// Sign the token with the secret key and get the complete encoded token as a string
+	tokenString, err := token.SignedString(jwtSecret)
+	if err != nil {
+		return "", err
+	}
+
+	return tokenString, nil
+}
+
+// loginHandler Handler for user login
+func loginHandler(w http.ResponseWriter, r *http.Request) {
+
+	// Check if the request method is POST
+	if r.Method == "POST" {
+		// Parse form data
+		err := r.ParseForm()
+		if err != nil {
+			fmt.Println(err)
+			response := APIResponse{Status: http.StatusBadRequest, Message: "Failed to parse form data"}
+			sendResponse(w, response)
 			return
 		}
-	} else { // if not , is password valid
-		isValid := validatePassword(password)
-		if !isValid {
-			Invalid := "Password incorrect, please use passwords with at least one lowercase letter, one uppercase letter, one digit, and a minimum length of 4 characters"
-			data := CombinedData{
-				Logged: logged,
-				Name:   Invalid,
-			}
-			renderTemplate(w, "Register", data)
 
-		} else { // if password is valid
-			hashedPassword := hashPassword(password)
+		// Retrieve username and password from the form
+		username := r.FormValue("username")
+		password := hashPassword(r.FormValue("password"))
 
-			err := createUser(username, mail, hashedPassword, biography, avatarPath+filename)
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
+		// Query the database to check if the user exists and the password is correct
+		var storedPassword string
+		var userID int
+		err = db.QueryRow("SELECT user_id, password FROM users_table WHERE username = ?", username).Scan(&userID, &storedPassword)
+		if err != nil {
+			fmt.Println(err)
+			response := APIResponse{Status: http.StatusTeapot, Message: "Invalid username or password"}
+			sendResponse(w, response)
+			return
 		}
-	}
-}
 
-// Handler for user login
-func loginHandler(w http.ResponseWriter, r *http.Request) {
-	// Load users from a file on startup
-	if err := loadUsersFromFile("users.json"); err != nil {
-		fmt.Println(err)
-	}
-	// Check if there are query parameters in the URL
-	queryParams := r.URL.Query()
-	// Get a specific query parameter value by key
-	invalidParam := queryParams.Get("invalid")
-	var Invalid string
-	Invalid = ""
-	// Use the obtained query parameter value
-	if invalidParam != "" {
-		Invalid = "Invalid username or password"
-		invalidParam = ""
-	}
+		// Verify password
+		if storedPassword != password {
+			response := APIResponse{Status: http.StatusTeapot, Message: "Invalid username or password"}
+			sendResponse(w, response)
+			return
+		}
 
-	data := CombinedData{
-		Logged: logged,
-		Name:   Invalid,
-	}
-
-	renderTemplate(w, "Login", data)
-}
-
-// Handler for successful user login
-func successLoginHandler(w http.ResponseWriter, r *http.Request) {
-
-	if r.Method != http.MethodPost {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+		// Authentication successful, generate token
+		token, err := generateToken(userID, username)
+		if err != nil {
+			fmt.Println(err)
+			response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to generate token"}
+			sendResponse(w, response)
+			return
+		}
+		response := APIResponse{Status: http.StatusOK, Message: "Authentication successful", Token: token}
+		sendResponse(w, response)
 		return
 	}
+	response := APIResponse{Status: http.StatusMethodNotAllowed, Message: "AMethod not allowed"}
+	sendResponse(w, response)
+}
 
-	username = r.FormValue("username")
-	password = r.FormValue("password")
+// Middleware function to authenticate requests
+func authenticate(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		tokenString := r.Header.Get("Authorization")
+		if tokenString == "" && !blacklist.IsTokenBlacklisted(tokenString) {
+			response := APIResponse{Status: http.StatusUnauthorized, Message: "Unauthorized please log in"}
+			sendResponse(w, response)
+			return
+		}
 
-	user, exists := users[username]
-	if !exists || !checkPasswordHash(password, user.Password) {
-		http.Redirect(w, r, "/login?invalid=true", http.StatusSeeOther)
-		return
+		// Extract the token from the Authorization header
+		token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+			return jwtSecret, nil
+		})
+		if err != nil {
+			response := APIResponse{Status: http.StatusInternalServerError, Message: "jwt didn't found token"}
+			sendResponse(w, response)
+			return
+		}
+
+		// Verify token validity
+		if !token.Valid {
+			response := APIResponse{Status: http.StatusUnauthorized, Message: "Unauthorized Token, please re-log yourself"}
+			sendResponse(w, response)
+			return
+		}
+
+		// Check expiration time
+		claims, ok := token.Claims.(*Claims)
+		if !ok || !claims.VerifyExpiresAt(time.Now().Unix(), true) {
+			response := APIResponse{Status: http.StatusUnauthorized, Message: "Token has expired, please re-log yourself"}
+			sendResponse(w, response)
+			return
+		}
+
+		// Token is valid and still within time
+		// Pass userID to the next handler
+		ctx := context.WithValue(r.Context(), "UserID", claims.UserID)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	}
-	logged = true
-	// Successfully logged in
-	// Handle further operations (e.g., setting session, redirecting, etc.)
-	http.Redirect(w, r, "/home", http.StatusSeeOther)
 }
 
 // Handler for user logout
 func logoutHandler(w http.ResponseWriter, r *http.Request) {
-	ResetUserValue()
-	http.Redirect(w, r, "/home", http.StatusSeeOther)
+	// Extract token from the request headers
+	tokenString := r.Header.Get("Authorization")
+
+	// Add the token to the blacklist
+	blacklist.AddToken(tokenString, time.Now().Add(time.Hour*24)) // Blacklist token for 24H
+
+	response := APIResponse{Status: http.StatusOK, Message: "Logged out successfully"}
+	sendResponse(w, response)
 }
 
 // Handler for dashboard
 func dashboardHandler(w http.ResponseWriter, r *http.Request) {
-	if !logged {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+	// Retrieve userID from the context
+	userID, ok := r.Context().Value("UserID").(int)
+	if !ok {
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "User ID not found in context"}
+		sendResponse(w, response)
 		return
 	}
-	autoData := struct {
-		Name   string
-		Logged bool
-	}{
-		Name:   username,
-		Logged: logged,
-	}
-	renderTemplate(w, "dashboard", autoData)
-}
 
-// Handler for gestion
-func gestionHandler(w http.ResponseWriter, r *http.Request) {
-	if !logged {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+	// Query the database to fetch user data
+	var userData struct {
+		Username         string    `json:"username"`
+		Email            string    `json:"email"`
+		RegistrationDate time.Time `json:"registration_date"`
+		LastLoginDate    time.Time `json:"last_login_date"`
+		Biography        string    `json:"biography"`
+		IsAdmin          bool      `json:"isAdmin"`
+		IsModerator      bool      `json:"isModerator"`
+		ProfilePic       string    `json:"profile_pic"`
+	}
+
+	err := db.QueryRow("SELECT username, email, registration_date, last_login_date, biography, isAdmin, isModerator, profile_pic FROM users_table WHERE user_id = ?", userID).Scan(
+		&userData.Username,
+		&userData.Email,
+		&userData.RegistrationDate,
+		&userData.LastLoginDate,
+		&userData.Biography,
+		&userData.IsAdmin,
+		&userData.IsModerator,
+		&userData.ProfilePic,
+	)
+	if err != nil {
+		fmt.Println(err)
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to fetch user data"}
+		sendResponse(w, response)
 		return
 	}
-	data := struct {
-		PlayerName string
-		Logged     bool
-	}{
-		PlayerName: username,
-		Logged:     logged,
+
+	// Send back the user data in the response
+	jsonResponse, err := json.Marshal(userData)
+	if err != nil {
+		fmt.Println(err)
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to marshal JSON response"}
+		sendResponse(w, response)
+		return
 	}
-	renderTemplate(w, "gestion", data)
+	response := APIResponse{Status: http.StatusOK, Message: "Correctly fetched user data", JsonResp: jsonResponse}
+	sendResponse(w, response)
 }
 
 // Handler for changing login credentials
-func changeLoginHandler(w http.ResponseWriter, r *http.Request) {
-	if !logged {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+func changeUserDataHandler(w http.ResponseWriter, r *http.Request) {
+	// Retrieve userID from the context
+	userID, ok := r.Context().Value("userID").(int)
+	if !ok {
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "User ID not found in context"}
+		sendResponse(w, response)
 		return
 	}
-	oldpassword := r.FormValue("oldpassword")
-	newpassword := r.FormValue("newpassword")
-	err := updateUserCredentials(username, oldpassword, newpassword)
+
+	// Parse form data including file upload
+	err := r.ParseMultipartForm(10 << 20) // Max size 10 MB
 	if err != nil {
-		fmt.Println("Error:", err)
+		fmt.Println(err)
+		response := APIResponse{Status: http.StatusBadRequest, Message: "Failed to parse form data"}
+		sendResponse(w, response)
 		return
 	}
-	fmt.Println("Password updated successfully.")
-	ResetUserValue()
-	http.Redirect(w, r, "/", http.StatusSeeOther)
-}
 
-// Function to save users to a file for register func
-func saveUsersToFile(filename string) error {
-	data, err := json.Marshal(users)
+	// Retrieve new user data from the form
+	newUsername := r.FormValue("username")
+	newEmail := r.FormValue("email")
+	newBiography := r.FormValue("biography")
+	newPassWord := hashPassword(r.FormValue("password"))
+	// You can retrieve other fields similarly
+
+	// Handle profile picture upload
+	file, _, err := r.FormFile("profile_pic")
 	if err != nil {
-		return err
+		fmt.Println(err)
+		response := APIResponse{Status: http.StatusBadRequest, Message: "Error retrieving profile picture"}
+		sendResponse(w, response)
+		return
 	}
-
-	if err := os.WriteFile(filename, data, 0644); err != nil {
-		log.Println("Error writing updated user data:", err)
-		return err
-	}
-
-	log.Println("User data successfully updated")
-	return nil
-}
-
-// Function to hash password
-func hashPassword(password string) string {
-	hasher := sha512.New()
-	hasher.Write([]byte(password))
-	hashedPassword := hasher.Sum(nil)
-	return hex.EncodeToString(hashedPassword)
-}
-
-// Function to check if password matches hashed password
-func checkPasswordHash(password, hash string) bool {
-	hashedPassword := hashPassword(password)
-	return hashedPassword == hash
-}
-
-// Function to load users from a file for register func
-func loadUsersFromFile(filename string) error {
-	// Check if the file exists
-	fileInfo, err := os.Stat(filename)
-	if os.IsNotExist(err) {
-		// Create an empty users.json file if it doesn't exist
-		file, err := os.Create(filename)
-		if err != nil {
-			return err
-		}
-		defer func(file *os.File) {
-			err := file.Close()
-			if err != nil {
-				fmt.Println("error file.close login.go 225 ", err)
-			}
-		}(file)
-	} else if err != nil {
-		return err
-	}
-
-	// Check if the file is empty
-	if fileInfo != nil && fileInfo.Size() == 0 {
-		// File exists but is empty, so initialize users as an empty map
-		users = make(map[string]User)
-		return nil
-	}
-
-	// Load users from the file
-	file, err := os.Open(filename)
-	if err != nil {
-		return err
-	}
-	defer func(file *os.File) {
+	defer func(file multipart.File) {
 		err := file.Close()
 		if err != nil {
-			fmt.Println("error file.close login.go 247 ", err)
+			fmt.Println("Error closing file:", err.Error())
 		}
 	}(file)
 
-	data, err := io.ReadAll(file)
+	// Save the profile picture to a location on your server
+	profilePicPath := "/assets/images/userAvatar/"
+	filename := strconv.Itoa(userID) + filepath.Ext(r.FormValue("profile_pic"))
+	err = saveProfilePic(file, profilePicPath+filename)
 	if err != nil {
-		return err
+		fmt.Println(err)
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "Error saving profile picture"}
+		sendResponse(w, response)
+		return
 	}
 
-	// Check if the file contains valid JSON data
-	if len(data) == 0 {
-		// File is empty or doesn't contain valid JSON
-		return nil
-	}
-
-	users = make(map[string]User)
-	if err := json.Unmarshal(data, &users); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// ResetUserValue Function to reset user values
-func ResetUserValue() {
-	logged = false
-	username = ""
-	password = ""
-}
-
-// Function to update user credentials
-func updateUserCredentials(name, oldPassword, newPassword string) error {
-	// Read the JSON file into memory
-	raw, err := os.ReadFile("users.json")
+	// Update the corresponding fields in the database
+	_, err = db.Exec("UPDATE users_table SET username = ?, email = ?,password = ?, biography = ?,profile_pic = ? WHERE user_id = ?", newUsername, newEmail, newPassWord, newBiography, profilePicPath+filename, userID)
 	if err != nil {
-		return err
+		fmt.Println(err)
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to update user data"}
+		sendResponse(w, response)
+		return
 	}
-
-	// Define a struct that matches your JSON structure
-	var data map[string]User // Map where keys are strings and values are User structs
-
-	// Unmarshal the JSON into the defined struct
-	if err := json.Unmarshal(raw, &data); err != nil {
-		return err
-	}
-
-	// Check if the user exists in the map
-	user, exists := data[name]
-	if !exists {
-		return fmt.Errorf("user not found")
-	}
-
-	if !checkPasswordHash(oldPassword, user.Password) {
-		return fmt.Errorf("incorrect password")
-	}
-
-	if newPassword != "" {
-		// Update the password
-		user.Password = hashPassword(newPassword)
-
-		// Update the user in the map
-		data[name] = user
-
-		// Marshal the updated data back to JSON
-		updatedJSON, err := json.MarshalIndent(data, "", "  ")
-		if err != nil {
-			return err
-		}
-
-		// Write the updated JSON back to the file
-		err = os.WriteFile("users.json", updatedJSON, 0644)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// Function to validate the password
-func validatePassword(password string) bool {
-	// Define the regex pattern
-	pattern := `(?i)[a-z]+.*[A-Z]+.*\d+.+`
-
-	// Compile the regex pattern into a regex object
-	regex := regexp.MustCompile(pattern)
-
-	// Check if the password matches the regex pattern
-	return regex.MatchString(password)
+	response := APIResponse{Status: http.StatusOK, Message: "User data updated successfully"}
+	sendResponse(w, response)
 }
