@@ -41,6 +41,11 @@ const hiddenBtn = post.querySelector('.hidden_comment');
 const textPost =post.querySelector('.post-text');
 const mediaPost=post.querySelector('.post__medias')
 const categoryPost =post.querySelector('.post-category');
+const Btn_moreOption=post.querySelector('.post__more-options');
+
+//fonction affcher les details d'un post
+
+
   // Fonction pour afficher la section de commentaires
   function displayCommentSection() {
     commentContainer.style.display = 'flex';
