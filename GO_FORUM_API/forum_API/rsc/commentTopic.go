@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-func commentHandler(w http.ResponseWriter, r *http.Request) {
+func CommentHandler(w http.ResponseWriter, r *http.Request) {
 	// Retrieve userID from the context
 	userID, ok := r.Context().Value("userID").(int)
 	if !ok {
@@ -140,7 +140,7 @@ func getBaseMessageTopicID(commentID int) (int, error) {
 	return topicID, nil
 }
 
-func updateCommentHandler(w http.ResponseWriter, r *http.Request) {
+func UpdateCommentHandler(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value("userID").(int)
 	if !ok {
 		response := APIResponse{Status: http.StatusInternalServerError, Message: "User ID not found in context"}

@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-func banUserHandler(w http.ResponseWriter, r *http.Request) {
+func BanUserHandler(w http.ResponseWriter, r *http.Request) {
 	// Retrieve userID from the context
 	adminID, ok := r.Context().Value("userID").(int)
 	if !ok {
@@ -95,7 +95,7 @@ func deleteUser(userID int) error {
 	return nil
 }
 
-func modifyTopicHandler(w http.ResponseWriter, r *http.Request) {
+func ModifyTopicHandler(w http.ResponseWriter, r *http.Request) {
 	// Retrieve userID from the context
 	adminID, ok := r.Context().Value("userID").(int)
 	if !ok {

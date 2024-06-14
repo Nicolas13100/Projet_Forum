@@ -135,3 +135,23 @@ CREATE TABLE follow
     FOREIGN KEY (user_id) REFERENCES users_Table (user_id),
     FOREIGN KEY (topic_id) REFERENCES Topics_Table (topic_id)
 )ENGINE = INNODB;
+
+CREATE TABLE tokens
+(
+    token_id INT AUTO_INCREMENT,
+    user_id  INT,
+    end_date DATETIME NOT NULL,
+    token    VARCHAR(500) UNIQUE,
+    PRIMARY KEY (token_id),
+    FOREIGN KEY (user_id) REFERENCES users_table (user_id) ON DELETE CASCADE
+) ENGINE = INNODB;
+
+CREATE TABLE password_reset_tokens
+(
+    token_id INT AUTO_INCREMENT,
+    user_id  INT,
+    end_date DATETIME NOT NULL,
+    token    VARCHAR(500) UNIQUE,
+    PRIMARY KEY (token_id),
+    FOREIGN KEY (user_id) REFERENCES users_table (user_id) ON DELETE CASCADE
+) ENGINE = INNODB;
