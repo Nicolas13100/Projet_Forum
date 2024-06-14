@@ -86,17 +86,17 @@ main {
     display: flex;
     gap: 20px;
     width: 700px;
-    background: yellow;
 }
 
 .profil_user {
     display: flex;
     align-items: center;
-    background-color: aqua;
+    width: 250px;
 }
 
 .profil_user__name {
     font-weight: 900;
+    width: 100%;
 }
 
 .profil_publication__text {
