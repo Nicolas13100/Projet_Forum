@@ -2,12 +2,16 @@ package API
 
 import (
 	"database/sql"
+	"encoding/json"
+	"errors"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/gorilla/mux"
+	"log"
 	"net/http"
 )
 
-func createTopicHandler(w http.ResponseWriter, r *http.Request) {
+func CreateTopicHandler(w http.ResponseWriter, r *http.Request) {
 
 	//check method
 	if r.Method != "POST" {
@@ -70,7 +74,7 @@ func createTopicHandler(w http.ResponseWriter, r *http.Request) {
 	sendResponse(w, response)
 }
 
-func deleteTopicHandler(w http.ResponseWriter, r *http.Request) {
+func DeleteTopicHandler(w http.ResponseWriter, r *http.Request) {
 	// Check method
 	if r.Method != "DELETE" {
 		response := APIResponse{Status: http.StatusMethodNotAllowed, Message: "Method not allowed"}
@@ -153,7 +157,7 @@ func deleteTopicHandler(w http.ResponseWriter, r *http.Request) {
 	sendResponse(w, response)
 }
 
-func deleteCommentHandler(w http.ResponseWriter, r *http.Request) {
+func DeleteCommentHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Check method
 	if r.Method != "DELETE" {
@@ -162,7 +166,7 @@ func deleteCommentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user_id, ok := r.Context().Value("userID").(int)
+	userId, ok := r.Context().Value("userID").(int)
 	if !ok {
 		response := APIResponse{Status: http.StatusInternalServerError, Message: "User ID not found in context"}
 		sendResponse(w, response)
@@ -182,7 +186,7 @@ func deleteCommentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//check if userID is admin or if it's the owner of the topic
-	isAdmin, err := checkAdminRights(user_id)
+	isAdmin, err := checkAdminRights(userId)
 
 	if err != nil {
 		fmt.Println(err)
@@ -190,7 +194,7 @@ func deleteCommentHandler(w http.ResponseWriter, r *http.Request) {
 		sendResponse(w, response)
 		return
 	}
-	if authorID != user_id || !isAdmin {
+	if authorID != userId || !isAdmin {
 		response := APIResponse{Status: http.StatusUnauthorized, Message: "Not allowed to delete comment"}
 		sendResponse(w, response)
 		return
@@ -235,7 +239,7 @@ func deleteCommentHandler(w http.ResponseWriter, r *http.Request) {
 	sendResponse(w, response)
 }
 
-func favoriteTopicHandler(w http.ResponseWriter, r *http.Request) {
+func FavoriteTopicHandler(w http.ResponseWriter, r *http.Request) {
 	// Check method
 	if r.Method != "UPDATE" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -289,5 +293,90 @@ func favoriteTopicHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Return success response
 	response := APIResponse{Status: http.StatusOK, Message: "Topic added to favorite successfully"}
+	sendResponse(w, response)
+}
+
+func GetAllTopic(w http.ResponseWriter, r *http.Request) {
+	// Check method
+	if r.Method != http.MethodGet {
+		response := APIResponse{Status: http.StatusMethodNotAllowed, Message: "Method not allowed"}
+		sendResponse(w, response)
+		return
+	}
+
+	// Query the topics
+	rows, err := db.Query("SELECT topic_id, title, body, creation_date, status, is_private, user_id FROM Topics_Table")
+	if err != nil {
+		log.Println("Error querying database:", err)
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "Internal Server Error"}
+		sendResponse(w, response)
+		return
+	}
+	defer func(rows *sql.Rows) {
+		if err := rows.Close(); err != nil {
+			log.Println("Error closing rows:", err)
+		}
+	}(rows)
+
+	var topics []Topic
+	for rows.Next() {
+		var topic Topic
+		var isPrivate int
+		if err := rows.Scan(&topic.TopicID, &topic.Title, &topic.Body, &topic.CreationDate, &topic.Status, &isPrivate, &topic.UserID); err != nil {
+			log.Println("Error scanning rows:", err)
+			response := APIResponse{Status: http.StatusInternalServerError, Message: "Internal Server Error"}
+			sendResponse(w, response)
+			return
+		}
+		topic.IsPrivate = isPrivate == 1
+		topics = append(topics, topic)
+	}
+
+	topicsJson, err := json.Marshal(topics)
+	if err != nil {
+		log.Println("Error marshaling topics to JSON:", err)
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "Internal Server Error"}
+		sendResponse(w, response)
+		return
+	}
+
+	response := APIResponse{Status: http.StatusOK, Message: "Success", JsonResp: topicsJson}
+	sendResponse(w, response)
+}
+
+func GetTopic(w http.ResponseWriter, r *http.Request) {
+	// Check method
+	if r.Method != http.MethodGet {
+		response := APIResponse{Status: http.StatusMethodNotAllowed, Message: "Method not allowed"}
+		sendResponse(w, response)
+		return
+	}
+	vars := mux.Vars(r) // Assuming you're using Gorilla mux or similar
+	id := vars["id"]
+
+	// Query the database for the topic with the given ID
+	topic := Topic{}
+	err := db.QueryRow("SELECT topic_id, title, body, creation_date, status, is_private, user_id FROM Topics_Table WHERE topic_id = ?", id).
+		Scan(&topic.TopicID, &topic.Title, &topic.Body, &topic.CreationDate, &topic.Status, &topic.IsPrivate, &topic.UserID)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			// If no topic found with the given ID, return 404 Not Found
+			http.Error(w, "Topic not found", http.StatusNotFound)
+		} else {
+			// For other errors, return 500 Internal Server Error
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	// Convert topic to JSON
+	topicJSON, err := json.Marshal(topic)
+	if err != nil {
+		http.Error(w, "Failed to marshal JSON", http.StatusInternalServerError)
+		return
+	}
+
+	response := APIResponse{Status: http.StatusOK, Message: "Success", JsonResp: topicJSON}
 	sendResponse(w, response)
 }

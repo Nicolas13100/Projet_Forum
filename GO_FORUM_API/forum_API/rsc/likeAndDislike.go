@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-func likeCommentHandler(w http.ResponseWriter, r *http.Request) {
+func LikeCommentHandler(w http.ResponseWriter, r *http.Request) {
 	// Retrieve userID from the context
 	userID, ok := r.Context().Value("userID").(int)
 	if !ok {
@@ -63,7 +63,7 @@ func likeCommentHandler(w http.ResponseWriter, r *http.Request) {
 	sendResponse(w, response)
 }
 
-func dislikeCommentHandler(w http.ResponseWriter, r *http.Request) {
+func DislikeCommentHandler(w http.ResponseWriter, r *http.Request) {
 	// Retrieve userID from the context
 	userID, ok := r.Context().Value("userID").(int)
 	if !ok {
@@ -184,7 +184,7 @@ func neutralLikeComment(userID, messageID int) error {
 	return nil
 }
 
-func likeTopicHandler(w http.ResponseWriter, r *http.Request) {
+func LikeTopicHandler(w http.ResponseWriter, r *http.Request) {
 	// Retrieve userID from the context
 	userID, ok := r.Context().Value("userID").(int)
 	if !ok {
@@ -241,7 +241,7 @@ func likeTopicHandler(w http.ResponseWriter, r *http.Request) {
 	sendResponse(w, response)
 }
 
-func dislikeTopicHandler(w http.ResponseWriter, r *http.Request) {
+func DislikeTopicHandler(w http.ResponseWriter, r *http.Request) {
 	// Retrieve userID from the context
 	userID, ok := r.Context().Value("userID").(int)
 	if !ok {
