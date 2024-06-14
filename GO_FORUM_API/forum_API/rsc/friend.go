@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func addFriendHandler(w http.ResponseWriter, r *http.Request) {
+func AddFriendHandler(w http.ResponseWriter, r *http.Request) {
 	// Retrieve userID from the context
 	userID, ok := r.Context().Value("userID").(int)
 	if !ok {
@@ -70,7 +70,7 @@ func addFriendHandler(w http.ResponseWriter, r *http.Request) {
 	sendResponse(w, response)
 }
 
-func acceptFriendHandler(w http.ResponseWriter, r *http.Request) {
+func AcceptFriendHandler(w http.ResponseWriter, r *http.Request) {
 	// Retrieve userID from the context
 	userID, ok := r.Context().Value("userID").(int)
 	if !ok {
@@ -120,7 +120,7 @@ func acceptFriendHandler(w http.ResponseWriter, r *http.Request) {
 	sendResponse(w, response)
 }
 
-func declineFriendHandler(w http.ResponseWriter, r *http.Request) {
+func DeclineFriendHandler(w http.ResponseWriter, r *http.Request) {
 	// Retrieve userID from the context
 	userID, ok := r.Context().Value("userID").(int)
 	if !ok {
@@ -171,7 +171,7 @@ func declineFriendHandler(w http.ResponseWriter, r *http.Request) {
 	sendResponse(w, response)
 }
 
-func deleteFriendHandler(w http.ResponseWriter, r *http.Request) {
+func DeleteFriendHandler(w http.ResponseWriter, r *http.Request) {
 	// Retrieve userID from the context
 	userID, ok := r.Context().Value("userID").(int)
 	if !ok {

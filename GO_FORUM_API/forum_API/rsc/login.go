@@ -2,6 +2,9 @@ package API
 
 import (
 	"context"
+	"crypto/rand"
+	"database/sql"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/dgrijalva/jwt-go" // Import JWT library
@@ -11,10 +14,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"time"
-)
-
-var (
-	logged bool // Variable to track if user is logged in
 )
 
 // Secret key for JWT signing. It should be securely stored.
@@ -108,30 +107,36 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // Function to generate JWT token
-func generateToken(userID int, username string) (string, error) {
-	// Create the claims
-	claims := &Claims{
-		UserID:   userID,
-		Username: username,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Hour * 24).Unix(), // Token expires in 24 hours
-		},
+func generateRandomToken(length int) (string, error) {
+	bytes := make([]byte, length)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", err
 	}
+	return hex.EncodeToString(bytes)[:length], nil
+}
 
-	// Create the token
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	// Sign the token with the secret key and get the complete encoded token as a string
-	tokenString, err := token.SignedString(jwtSecret)
+func generateToken(userID int) (string, error) {
+	// Generate a random 86-character token
+	token, err := generateRandomToken(86)
 	if err != nil {
 		return "", err
 	}
 
-	return tokenString, nil
+	// Define the token expiration time (24 hours from now)
+	endDate := time.Now().Add(24 * time.Hour)
+
+	// Store the token in the database
+	query := `INSERT INTO tokens (user_id, end_date, token) VALUES (?, ?, ?)`
+	_, err = db.Exec(query, userID, endDate, token)
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
 }
 
-// loginHandler Handler for user login
-func loginHandler(w http.ResponseWriter, r *http.Request) {
+// LoginHandler Handler for user login
+func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Check if the request method is POST
 	if r.Method == "POST" {
@@ -167,7 +172,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Authentication successful, generate token
-		token, err := generateToken(userID, username)
+		token, err := generateToken(userID)
 		if err != nil {
 			fmt.Println(err)
 			response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to generate token"}
@@ -182,50 +187,55 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	sendResponse(w, response)
 }
 
-// Middleware function to authenticate requests
-func authenticate(next http.HandlerFunc) http.HandlerFunc {
+// Authenticate Middleware function to Authenticate requests
+func Authenticate(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenString := r.Header.Get("Authorization")
-		if tokenString == "" && !blacklist.IsTokenBlacklisted(tokenString) {
-			response := APIResponse{Status: http.StatusUnauthorized, Message: "Unauthorized please log in"}
+
+		if tokenString == "" {
+			response := APIResponse{Status: http.StatusUnauthorized, Message: "Unauthorized: please log in"}
 			sendResponse(w, response)
 			return
 		}
 
-		// Extract the token from the Authorization header
-		token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-			return jwtSecret, nil
-		})
+		// Query the database to check token validity
+		var response APIResponse
+		var userID int
+		var endDate time.Time
+		err := db.QueryRow("SELECT user_id, end_date FROM tokens WHERE token = ?", tokenString).Scan(&userID, &endDate)
 		if err != nil {
-			response := APIResponse{Status: http.StatusInternalServerError, Message: "jwt didn't found token"}
+			if err == sql.ErrNoRows {
+				response = APIResponse{Status: http.StatusUnauthorized, Message: "Unauthorized: invalid token"}
+			} else {
+				response = APIResponse{Status: http.StatusInternalServerError, Message: "Internal server error"}
+			}
+
 			sendResponse(w, response)
 			return
 		}
 
-		// Verify token validity
-		if !token.Valid {
-			response := APIResponse{Status: http.StatusUnauthorized, Message: "Unauthorized Token, please re-log yourself"}
-			sendResponse(w, response)
+		// Check if the token is expired
+		if time.Now().After(endDate) {
+			// Extend the token's expiration by 24 hours
+			newEndDate := endDate.Add(24 * time.Hour)
+			_, err = db.Exec("UPDATE tokens SET end_date = ? WHERE token = ?", newEndDate, tokenString)
+			if err != nil {
+				response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to extend token expiration, please re-log"}
+				sendResponse(w, response)
+				return
+			}
 			return
 		}
 
-		// Check expiration time
-		claims, ok := token.Claims.(*Claims)
-		if !ok || !claims.VerifyExpiresAt(time.Now().Unix(), true) {
-			response := APIResponse{Status: http.StatusUnauthorized, Message: "Token has expired, please re-log yourself"}
-			sendResponse(w, response)
-			return
-		}
-
-		// Token is valid and still within time
+		// Token is valid and not expired
 		// Pass userID to the next handler
-		ctx := context.WithValue(r.Context(), "UserID", claims.UserID)
+		ctx := context.WithValue(r.Context(), "UserID", userID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}
 }
 
-// Handler for user logout
-func logoutHandler(w http.ResponseWriter, r *http.Request) {
+// LogoutHandler Handler for user logout
+func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	// Extract token from the request headers
 	tokenString := r.Header.Get("Authorization")
 
@@ -236,8 +246,8 @@ func logoutHandler(w http.ResponseWriter, r *http.Request) {
 	sendResponse(w, response)
 }
 
-// Handler for dashboard
-func dashboardHandler(w http.ResponseWriter, r *http.Request) {
+// DashboardHandler Handler for dashboard
+func DashboardHandler(w http.ResponseWriter, r *http.Request) {
 	// Retrieve userID from the context
 	userID, ok := r.Context().Value("UserID").(int)
 	if !ok {
@@ -287,8 +297,8 @@ func dashboardHandler(w http.ResponseWriter, r *http.Request) {
 	sendResponse(w, response)
 }
 
-// Handler for changing login credentials
-func changeUserDataHandler(w http.ResponseWriter, r *http.Request) {
+// ChangeUserDataHandler Handler for changing login credentials
+func ChangeUserDataHandler(w http.ResponseWriter, r *http.Request) {
 	// Retrieve userID from the context
 	userID, ok := r.Context().Value("userID").(int)
 	if !ok {

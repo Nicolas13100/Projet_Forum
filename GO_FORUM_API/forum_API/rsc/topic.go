@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func createTopicHandler(w http.ResponseWriter, r *http.Request) {
+func CreateTopicHandler(w http.ResponseWriter, r *http.Request) {
 
 	//check method
 	if r.Method != "POST" {
@@ -70,7 +70,7 @@ func createTopicHandler(w http.ResponseWriter, r *http.Request) {
 	sendResponse(w, response)
 }
 
-func deleteTopicHandler(w http.ResponseWriter, r *http.Request) {
+func DeleteTopicHandler(w http.ResponseWriter, r *http.Request) {
 	// Check method
 	if r.Method != "DELETE" {
 		response := APIResponse{Status: http.StatusMethodNotAllowed, Message: "Method not allowed"}
@@ -153,7 +153,7 @@ func deleteTopicHandler(w http.ResponseWriter, r *http.Request) {
 	sendResponse(w, response)
 }
 
-func deleteCommentHandler(w http.ResponseWriter, r *http.Request) {
+func DeleteCommentHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Check method
 	if r.Method != "DELETE" {
@@ -235,7 +235,7 @@ func deleteCommentHandler(w http.ResponseWriter, r *http.Request) {
 	sendResponse(w, response)
 }
 
-func favoriteTopicHandler(w http.ResponseWriter, r *http.Request) {
+func FavoriteTopicHandler(w http.ResponseWriter, r *http.Request) {
 	// Check method
 	if r.Method != "UPDATE" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -290,4 +290,13 @@ func favoriteTopicHandler(w http.ResponseWriter, r *http.Request) {
 	// Return success response
 	response := APIResponse{Status: http.StatusOK, Message: "Topic added to favorite successfully"}
 	sendResponse(w, response)
+}
+
+func GetAllTopic(w http.ResponseWriter, r *http.Request) {
+	//check method
+	if r.Method != "GET" {
+		response := APIResponse{Status: http.StatusMethodNotAllowed, Message: "Method not allowed"}
+		sendResponse(w, response)
+		return
+	}
 }
