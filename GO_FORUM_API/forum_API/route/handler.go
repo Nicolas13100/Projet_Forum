@@ -11,6 +11,8 @@ import (
 func RUN() {
 	// Setting up HTTP routes for different endpoints
 	http.HandleFunc("/getHome", API.Authenticate(API.GetAllTopic))
+	http.HandleFunc("/getPost/:id", API.Authenticate(API.GetTopic))
+	http.HandleFunc("/getUser/:id", API.Authenticate(API.GetUser))
 
 	//Admin
 	http.HandleFunc("/modifyTopic", API.Authenticate(API.ModifyTopicHandler))

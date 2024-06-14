@@ -1,10 +1,17 @@
 package API
 
+// User struct to represent user data
 type User struct {
-	ID       int64  `json:"id"`
-	Username string `json:"username"`
-	Password string `json:"password,omitempty"`
-	Mail     string `json:"mail"`
+	UserID           int    `json:"user_id"`
+	Username         string `json:"username"`
+	Email            string `json:"email"`
+	RegistrationDate string `json:"registration_date"`
+	LastLoginDate    string `json:"last_login_date"`
+	Biography        string `json:"biography"`
+	IsAdmin          bool   `json:"is_admin"`
+	IsModerator      bool   `json:"is_moderator"`
+	IsDeleted        bool   `json:"is_deleted"`
+	ProfilePic       string `json:"profile_pic"`
 }
 
 // UserData structure for individual user data
