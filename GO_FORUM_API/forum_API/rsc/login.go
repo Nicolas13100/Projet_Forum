@@ -30,29 +30,29 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 	mail := r.FormValue("email")
 	biography := r.FormValue("bio")
-	file, _, err := r.FormFile("avatar")
-	if err != nil {
-		fmt.Println(err)
-		response := APIResponse{Status: http.StatusBadRequest, Message: "Error retrieving avatar"}
-		sendResponse(w, response)
-		return
-	}
-	defer func(file multipart.File) {
-		err := file.Close()
-		if err != nil {
-			fmt.Println("RegisterHandler: Error closing file : " + err.Error())
-		}
-	}(file)
 
-	// Save the image to a location on your server
-	profilePicPath := "/assets/images/userAvatar/"
-	filename := username + filepath.Ext(r.FormValue("avatar"))
-	err = saveProfilePic(file, profilePicPath+filename)
-	if err != nil {
-		fmt.Println(err)
-		response := APIResponse{Status: http.StatusInternalServerError, Message: "Error saving profile picture"}
-		sendResponse(w, response)
-		return
+	var profilePicPath string
+	var filename string
+
+	file, header, err := r.FormFile("avatar")
+	if err == nil {
+		defer func(file multipart.File) {
+			err := file.Close()
+			if err != nil {
+				fmt.Println("RegisterHandler: Error closing file : " + err.Error())
+			}
+		}(file)
+
+		// Save the image to a location on your server
+		profilePicPath = "/assets/images/userAvatar/"
+		filename = username + filepath.Ext(header.Filename)
+		err = saveProfilePic(file, profilePicPath+filename)
+		if err != nil {
+			fmt.Println(err)
+			response := APIResponse{Status: http.StatusInternalServerError, Message: "Error saving profile picture"}
+			sendResponse(w, response)
+			return
+		}
 	}
 
 	// Check if username or email already exist in the database
@@ -90,6 +90,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		sendResponse(w, response)
 		return
 	}
+
 	response := APIResponse{Status: http.StatusOK, Message: "User registered successfully"}
 	sendResponse(w, response)
 }
