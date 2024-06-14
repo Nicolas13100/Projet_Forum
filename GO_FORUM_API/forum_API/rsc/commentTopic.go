@@ -20,6 +20,7 @@ func commentHandler(w http.ResponseWriter, r *http.Request) {
 	// Parse form values
 	topicID, err := strconv.Atoi(r.FormValue("topicID"))
 	if err != nil {
+		fmt.Println(err)
 		response := APIResponse{Status: http.StatusBadRequest, Message: "Invalid topic ID"}
 		sendResponse(w, response)
 		return
@@ -27,6 +28,7 @@ func commentHandler(w http.ResponseWriter, r *http.Request) {
 
 	commentID, err := strconv.Atoi(r.FormValue("commentID"))
 	if err != nil {
+		fmt.Println(err)
 		response := APIResponse{Status: http.StatusBadRequest, Message: "Invalid comment ID"}
 		sendResponse(w, response)
 		return
@@ -39,6 +41,8 @@ func commentHandler(w http.ResponseWriter, r *http.Request) {
 		err := createTopicComment(userID, topicID, comment)
 		if err != nil {
 			fmt.Println(err)
+			response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to create topic comment"}
+			sendResponse(w, response)
 			return
 		}
 		response := APIResponse{Status: http.StatusOK, Message: "Comment on topic created successfully"}
@@ -58,6 +62,8 @@ func commentHandler(w http.ResponseWriter, r *http.Request) {
 		err = createReplyToComment(userID, commentID, baseTopicID, comment)
 		if err != nil {
 			fmt.Println(err)
+			response := APIResponse{Status: http.StatusInternalServerError, Message: "couldn't creat reply to comment"}
+			sendResponse(w, response)
 			return
 		}
 		response := APIResponse{Status: http.StatusOK, Message: "Reply to comment created successfully"}
@@ -74,7 +80,9 @@ func sendResponse(w http.ResponseWriter, response APIResponse) {
 	w.WriteHeader(response.Status)
 	err := json.NewEncoder(w).Encode(response)
 	if err != nil {
-		fmt.Println("Comment topic response error:", err)
+		fmt.Println("send response error:", err)
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "API send response error"}
+		sendResponse(w, response)
 		return
 	}
 }
@@ -137,28 +145,36 @@ func updateCommentHandler(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		response := APIResponse{Status: http.StatusInternalServerError, Message: "User ID not found in context"}
 		sendResponse(w, response)
+		return
 	}
 	messageID, err := strconv.Atoi(r.FormValue("messageID"))
 	if err != nil {
+		fmt.Println(err)
 		response := APIResponse{Status: http.StatusBadRequest, Message: "Invalid message ID"}
 		sendResponse(w, response)
+		return
 	}
 	admin, err := checkAdminRights(userID)
 	if err != nil {
+		fmt.Println(err)
 		response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to check admin rights"}
 		sendResponse(w, response)
+		return
 	}
 	// Query the database to retrieve the authorID associated with the topicID
 	var authorID int
 	err = db.QueryRow("SELECT user_id FROM Messages_Table WHERE message_id = ?", messageID).Scan(&authorID)
 	if err != nil {
+		fmt.Println(err)
 		response := APIResponse{Status: http.StatusBadRequest, Message: "Impossible to see if user id author"}
 		sendResponse(w, response)
+		return
 	}
 
 	if authorID != userID || !admin {
 		response := APIResponse{Status: http.StatusForbidden, Message: "You do not have access to this topic"}
 		sendResponse(w, response)
+		return
 	}
 
 	// Update the comment in the database

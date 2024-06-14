@@ -1,7 +1,7 @@
 package main
 
 import (
-	API "KoKo/site_web/rsc"
+	API "KoKo/forum_API/rsc"
 	"fmt"
 )
 

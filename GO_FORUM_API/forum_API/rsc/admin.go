@@ -3,7 +3,6 @@ package API
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 )
@@ -12,25 +11,29 @@ func banUserHandler(w http.ResponseWriter, r *http.Request) {
 	// Retrieve userID from the context
 	adminID, ok := r.Context().Value("userID").(int)
 	if !ok {
-		http.Error(w, "User ID not found in context", http.StatusInternalServerError)
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "User ID not found in context"}
+		sendResponse(w, response)
 		return
 	}
 
 	// Check if the user making the request has admin rights
 	isAdmin, err := checkAdminRights(adminID)
 	if err != nil {
-		http.Error(w, "Failed to check admin rights", http.StatusInternalServerError)
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to check admin rights"}
+		sendResponse(w, response)
 		return
 	}
 	if !isAdmin {
-		http.Error(w, "Unauthorized: You do not have admin rights", http.StatusUnauthorized)
+		response := APIResponse{Status: http.StatusUnauthorized, Message: "Unauthorized: You do not have admin rights"}
+		sendResponse(w, response)
 		return
 	}
 
 	// Parse form data to get the user ID and reason for deletion
 	err = r.ParseForm()
 	if err != nil {
-		http.Error(w, "Failed to parse form data", http.StatusInternalServerError)
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to parse form data"}
+		sendResponse(w, response)
 		return
 	}
 
@@ -40,19 +43,21 @@ func banUserHandler(w http.ResponseWriter, r *http.Request) {
 	// Create a log entry for the ban action
 	err = createBanLog(reason)
 	if err != nil {
-		http.Error(w, "Failed to create ban log", http.StatusInternalServerError)
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to create ban log"}
+		sendResponse(w, response)
 		return
 	}
 
 	// Update the user's data to mark it as deleted
 	err = deleteUser(deletedUserID)
 	if err != nil {
-		http.Error(w, "Failed to delete user", http.StatusInternalServerError)
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to delete user"}
+		sendResponse(w, response)
 		return
 	}
 
-	// Optionally, you can send a success response
-	w.WriteHeader(http.StatusOK)
+	response := APIResponse{Status: http.StatusOK, Message: "User Deleted correctly user"}
+	sendResponse(w, response)
 }
 
 // Function to check if the user making the request has admin rights
@@ -76,7 +81,6 @@ func createBanLog(reason string) error {
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
@@ -95,7 +99,8 @@ func modifyTopicHandler(w http.ResponseWriter, r *http.Request) {
 	// Retrieve userID from the context
 	adminID, ok := r.Context().Value("userID").(int)
 	if !ok {
-		http.Error(w, "User ID not found in context", http.StatusInternalServerError)
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "User ID not found in context"}
+		sendResponse(w, response)
 		return
 	}
 
@@ -107,14 +112,16 @@ func modifyTopicHandler(w http.ResponseWriter, r *http.Request) {
 	err := db.QueryRow("SELECT user_id FROM Topics_Table WHERE topic_id = ?", topicID).Scan(&authorID)
 	if err != nil {
 		// Handle the error (e.g., topic not found)
-		http.Error(w, "Topic not found", http.StatusNotFound)
+		response := APIResponse{Status: http.StatusNotFound, Message: "Topic not found"}
+		sendResponse(w, response)
 		return
 	}
 
 	// Check if the adminID is the same as the authorID
 	isAdmin, err := checkAdminRights(adminID)
 	if adminID != authorID || !isAdmin {
-		http.Error(w, "Unauthorized: Only the topic author can modify it", http.StatusUnauthorized)
+		response := APIResponse{Status: http.StatusUnauthorized, Message: "Unauthorized: Only the topic author can modify it"}
+		sendResponse(w, response)
 		return
 	}
 
@@ -129,14 +136,12 @@ func modifyTopicHandler(w http.ResponseWriter, r *http.Request) {
 	_, err = db.Exec("UPDATE Topics_Table SET title = ?, body = ?, status = ?, is_private = ? WHERE topic_id = ?", title, body, status, isPrivate, authorID)
 	if err != nil {
 		// Handle the error
-		http.Error(w, "Failed to update topic", http.StatusInternalServerError)
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to update topic"}
+		sendResponse(w, response)
 		return
 	}
 
 	// Respond with success message or redirect as needed
-	_, err = w.Write([]byte("Topic updated successfully"))
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	response := APIResponse{Status: http.StatusOK, Message: "Topic updated successfully"}
+	sendResponse(w, response)
 }

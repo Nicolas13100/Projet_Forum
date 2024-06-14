@@ -1,0 +1,25 @@
+{
+  "name": "servjs",
+  "version": "1.0.0",
+  "description": "web_market_backServ",
+  "main": "backEnd/serv.js",
+  "scripts": {
+    "start": "nodemon backEnd/serv.js"
+  },
+  "author": "nicolas",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.6.8",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "stripe": "^15.10.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}
