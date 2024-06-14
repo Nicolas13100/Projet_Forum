@@ -10,7 +10,7 @@ import (
 // RUN function sets up HTTP routes and starts the server
 func RUN() {
 	// Setting up HTTP routes for different endpoints
-	http.HandleFunc("/home", API.GetAllTopic)
+	http.HandleFunc("/getHome", API.Authenticate(API.GetAllTopic))
 
 	//Admin
 	http.HandleFunc("/modifyTopic", API.Authenticate(API.ModifyTopicHandler))

@@ -2,8 +2,10 @@ package API
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	"log"
 	"net/http"
 )
 
@@ -293,10 +295,49 @@ func FavoriteTopicHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetAllTopic(w http.ResponseWriter, r *http.Request) {
-	//check method
-	if r.Method != "GET" {
+	// Check method
+	if r.Method != http.MethodGet {
 		response := APIResponse{Status: http.StatusMethodNotAllowed, Message: "Method not allowed"}
 		sendResponse(w, response)
 		return
 	}
+
+	// Query the topics
+	rows, err := db.Query("SELECT topic_id, title, body, creation_date, status, is_private, user_id FROM Topics_Table")
+	if err != nil {
+		log.Println("Error querying database:", err)
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "Internal Server Error"}
+		sendResponse(w, response)
+		return
+	}
+	defer func(rows *sql.Rows) {
+		if err := rows.Close(); err != nil {
+			log.Println("Error closing rows:", err)
+		}
+	}(rows)
+
+	var topics []Topic
+	for rows.Next() {
+		var topic Topic
+		var isPrivate int
+		if err := rows.Scan(&topic.TopicID, &topic.Title, &topic.Body, &topic.CreationDate, &topic.Status, &isPrivate, &topic.UserID); err != nil {
+			log.Println("Error scanning rows:", err)
+			response := APIResponse{Status: http.StatusInternalServerError, Message: "Internal Server Error"}
+			sendResponse(w, response)
+			return
+		}
+		topic.IsPrivate = isPrivate == 1
+		topics = append(topics, topic)
+	}
+
+	topicsJson, err := json.Marshal(topics)
+	if err != nil {
+		log.Println("Error marshaling topics to JSON:", err)
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "Internal Server Error"}
+		sendResponse(w, response)
+		return
+	}
+
+	response := APIResponse{Status: http.StatusOK, Message: "Success", JsonResp: topicsJson}
+	sendResponse(w, response)
 }

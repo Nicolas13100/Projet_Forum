@@ -2,12 +2,10 @@ package API
 
 import (
 	"context"
-	"crypto/rand"
 	"database/sql"
-	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"github.com/dgrijalva/jwt-go" // Import JWT library
 	_ "github.com/go-sql-driver/mysql"
 	"mime/multipart"
 	"net/http"
@@ -15,16 +13,6 @@ import (
 	"strconv"
 	"time"
 )
-
-// Secret key for JWT signing. It should be securely stored.
-var jwtSecret = []byte("G45hUthd!3$gfdjHDfg@rT8p*3h$E%98")
-
-// Claims Struct for JWT claims
-type Claims struct {
-	UserID   int    `json:"user_id"`
-	Username string `json:"username"`
-	jwt.StandardClaims
-}
 
 // RegisterHandler Handler for confirming user registration
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
@@ -106,35 +94,6 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	sendResponse(w, response)
 }
 
-// Function to generate JWT token
-func generateRandomToken(length int) (string, error) {
-	bytes := make([]byte, length)
-	if _, err := rand.Read(bytes); err != nil {
-		return "", err
-	}
-	return hex.EncodeToString(bytes)[:length], nil
-}
-
-func generateToken(userID int) (string, error) {
-	// Generate a random 86-character token
-	token, err := generateRandomToken(86)
-	if err != nil {
-		return "", err
-	}
-
-	// Define the token expiration time (24 hours from now)
-	endDate := time.Now().Add(24 * time.Hour)
-
-	// Store the token in the database
-	query := `INSERT INTO tokens (user_id, end_date, token) VALUES (?, ?, ?)`
-	_, err = db.Exec(query, userID, endDate, token)
-	if err != nil {
-		return "", err
-	}
-
-	return token, nil
-}
-
 // LoginHandler Handler for user login
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
@@ -204,7 +163,7 @@ func Authenticate(next http.HandlerFunc) http.HandlerFunc {
 		var endDate time.Time
 		err := db.QueryRow("SELECT user_id, end_date FROM tokens WHERE token = ?", tokenString).Scan(&userID, &endDate)
 		if err != nil {
-			if err == sql.ErrNoRows {
+			if errors.Is(err, sql.ErrNoRows) {
 				response = APIResponse{Status: http.StatusUnauthorized, Message: "Unauthorized: invalid token"}
 			} else {
 				response = APIResponse{Status: http.StatusInternalServerError, Message: "Internal server error"}
@@ -227,9 +186,24 @@ func Authenticate(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
+		// Query the users_table to check if the user is an admin or a moderator
+		var isAdmin, isModerator int
+		err = db.QueryRow("SELECT isAdmin, isModerator FROM users_table WHERE user_id = ?", userID).Scan(&isAdmin, &isModerator)
+		if err != nil {
+			response = APIResponse{Status: http.StatusInternalServerError, Message: "Internal server error"}
+			sendResponse(w, response)
+			return
+		}
+
+		// Convert TINYINT values to booleans
+		isAdminBool := isAdmin == 1
+		isModeratorBool := isModerator == 1
+
 		// Token is valid and not expired
-		// Pass userID to the next handler
+		// Pass userID, isAdminBool, and isModeratorBool to the next handler
 		ctx := context.WithValue(r.Context(), "UserID", userID)
+		ctx = context.WithValue(ctx, "IsAdmin", isAdminBool)
+		ctx = context.WithValue(ctx, "IsModerator", isModeratorBool)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}
 }
@@ -238,9 +212,15 @@ func Authenticate(next http.HandlerFunc) http.HandlerFunc {
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	// Extract token from the request headers
 	tokenString := r.Header.Get("Authorization")
+	// Get the user ID from the context
+	userID := r.Context().Value("UserID").(int)
 
-	// Add the token to the blacklist
-	blacklist.AddToken(tokenString, time.Now().Add(time.Hour*24)) // Blacklist token for 24H
+	err := deleteTokenFromDB(userID, tokenString)
+	if err != nil {
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to logout"}
+		sendResponse(w, response)
+		return
+	}
 
 	response := APIResponse{Status: http.StatusOK, Message: "Logged out successfully"}
 	sendResponse(w, response)

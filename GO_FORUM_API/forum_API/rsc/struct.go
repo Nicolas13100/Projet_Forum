@@ -35,3 +35,13 @@ type APIResponse struct {
 	Token    string `json:"token,omitempty"`
 	JsonResp []byte `json:"json_resp,omitempty"`
 }
+
+type Topic struct {
+	TopicID      int    `json:"topic_id"`
+	Title        string `json:"title"`
+	Body         string `json:"body"`
+	CreationDate string `json:"creation_date"`
+	Status       int    `json:"status"`
+	IsPrivate    bool   `json:"is_private"`
+	UserID       int    `json:"user_id"`
+}

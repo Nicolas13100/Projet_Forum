@@ -1,6 +1,7 @@
 package API
 
 import (
+	"crypto/rand"
 	"crypto/sha512"
 	"encoding/hex"
 	"fmt"
@@ -11,6 +12,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"time"
 )
 
 // ////
@@ -30,6 +32,7 @@ func renderTemplate(w http.ResponseWriter, tmplName string, data interface{}) {
 		return
 	}
 }
+
 func join(s []string, sep string) string {
 	// same
 	return strings.Join(s, sep)
@@ -44,10 +47,6 @@ func containsString(slice []string, str string) bool {
 }
 
 ///////
-
-func Init() {
-	InitBlacklist()
-}
 
 // Function to save profile picture to the server
 func saveProfilePic(file multipart.File, path string) error {
@@ -90,4 +89,41 @@ func validatePassword(password string) bool {
 
 	// Check if the password matches the regex pattern
 	return regex.MatchString(password)
+}
+
+// deleteTokenFromDB deletes the token for the specified user ID
+func deleteTokenFromDB(userID int, token string) error {
+	// Assuming you have a DB connection set up as `db`
+	query := "DELETE FROM tokens WHERE user_id = ? AND token = ?"
+	_, err := db.Exec(query, userID, token)
+	return err
+}
+
+// Function to generate JWT token
+func generateRandomToken(length int) (string, error) {
+	bytes := make([]byte, length)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(bytes)[:length], nil
+}
+
+func generateToken(userID int) (string, error) {
+	// Generate a random 86-character token
+	token, err := generateRandomToken(86)
+	if err != nil {
+		return "", err
+	}
+
+	// Define the token expiration time (24 hours from now)
+	endDate := time.Now().Add(24 * time.Hour)
+
+	// Store the token in the database
+	query := `INSERT INTO tokens (user_id, end_date, token) VALUES (?, ?, ?)`
+	_, err = db.Exec(query, userID, endDate, token)
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
 }
