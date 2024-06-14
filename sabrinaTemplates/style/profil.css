@@ -36,6 +36,8 @@ main {
     align-items: center;
     flex-direction: column;
     margin-top: 70px;
+    margin-bottom: 50px;
+    flex:auto
 }
 
 .contains_information {
@@ -53,16 +55,17 @@ main {
     height: 180px;
     background-color: var(--primary);
     color: var(--text-dark);
-    border-bottom: 1px dashed black;
+    border-bottom: 1px solid var(--story-border);
 }
 
 .profil_informations {
     display: flex;
     justify-content: space-around;
+    overflow:hidden;
 }
 
 .picture {
-    width: 300px;
+    /* width: 300px; */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -99,8 +102,7 @@ main {
     width: 100%;
 }
 
-.profil_publication__text {
-}
+
 
 .profil_publication__number {
 }
@@ -108,8 +110,10 @@ main {
 .profil_followers, .profil_publication, .profil_following {
     display: flex;
     margin: 20px 0px;
-    justify-content: space-around;
-    width: 150px;
+    text-align: center;
+    justify-content: space-between;
+    width: 200px;
+    max-width: 210px;
     height: 35px;
     padding: 5px 10px;
     font-weight: 500;
@@ -131,7 +135,14 @@ main {
 
 .profil_informations__text__description {
 }
-
+.profil_biogragraphy__text{
+    width: 100px;
+ }
+ .profil_biogragraphy__content{
+    flex: auto;
+    margin-top: 10px;
+    font-size: medium;
+ }
 .content-container {
     margin-top: 170px !important;
 }
@@ -143,21 +154,157 @@ main {
 @media screen and (max-width: 1023.2px) {
     .profil_informations {
         width: 100%;
-        height: 200px;
+        /* height: 200px; */
     }
 
-    .side-menu {
+    .profil_biogragraphy__content{
+        max-width: 500px;
+     }
+    
+   
+}
+
+.profil_followers, .profil_publication, .profil_following {
+    
+}
+
+/*****MEDIA QUERIES *******/
+@media screen and (max-width: 400px) {
+    *{
+        font-size:10px;
+    }
+      .profil_informations__picture {
+      width:70px !important;
+      height:70px !important
+  }
+     .profil_followers, .profil_publication, .profil_following {
+        width:100px !important;
+         height:20px !important;
+         padding:2px 5px !important;
+         background-color:#15664b;      
+    }
+     .profil_biogragraphy__content{
+         font-size:10px !important;
+     }
+    .profil_followers{
+     right:130px !important;
+    top:30px !important;
+}
+}
+
+
+
+
+@media screen and (min-width: 641px) {
+    .profil_informations__text{
+        gap:10px;
+        
+    }
+     .profil_followers{
+        top: 31px;
+        right:200px;
+    }
+.profil_publication{
+    right:20px;
+    top:-12px;
+}
+    .profil_following {
+        top: 31px;
+        right:20px;
+    }
+    .profil_informations__picture {
+      width:90px;
+      height:90px
+  }
+    .profil_user{
+    width:150px;
+    position:absolute;
+    left:8px;
+    top:10px;
+}
+
+    .profil_followers, .profil_publication, .profil_following {
+        width:150px;
+        position:absolute;
+    }
+   .profil_biogragraphy{
+  position: absolute;
+  bottom: 10px;
+  }
+ .profil_biogragraphy__content{
+     font-size:14px;
+ }
+}
+
+@media screen and (max-width: 640px) {
+      .profil_informations__picture {
+        width:90px;
+        height:90px
+    }
+      .profil_biogragraphy__content{
+          margin-top:2px;
+        max-width: 280px;
+        font-size:12px;
+          font-style:revert;
+          font-weight:500;
+     }
+    .profil_biogragraphy{
+  position: absolute;
+  bottom: 10px;
+  }
+    
+.profil_followers, .profil_publication, .profil_following {
+    position:absolute;
+    height: 27px;
+    width: 130px;
+    font-size:12px;
+    max-width: 200px;
+    flex:auto;
+}
+.profil_followers{
+     right:160px;
+    top:-12px;
+}
+.profil_publication{
+    right:20px;
+    top:-12px;
+}
+    .profil_following {
+        top: 31px;
+        right:20px;
+    }
+    
+.profil_user{
+    width:100px;
+    position:absolute;
+    left:8px;
+    margin-left:10px;
+    top:20px;
+}
+ .profil_user__name{
+   font-size:13px;     
+    }
+    .profil_informations__text{
+        width:300px;
+        max-width:300px;
+        justify-content:center;
     }
 }
 
 @media screen and (min-width: 1023.2px) {
     .profil_informations {
         padding: 10px 0;
-        width: 90%;
+        width: 1000px;
         height: 180px;
     }
 
     .side-menu {
         margin-top: 150px;
     }
+    .profil_biogragraphy__content{
+        max-width: 800px;
+     }
+     .profil_followers, .profil_publication, .profil_following {
+     position:unset;
+     }
 }
