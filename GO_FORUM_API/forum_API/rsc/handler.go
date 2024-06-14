@@ -50,8 +50,8 @@ func RUN() {
 	http.HandleFunc("/declineFriend", authenticate(declineFriendHandler))
 	http.HandleFunc("/deleteFriend", authenticate(deleteFriendHandler))
 
-	// Serve static files from the "site_web/static" directory
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("site_web/static"))))
+	// Serve static files from the "forum_API/static" directory
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("forum_API/static"))))
 
 	// Print statement indicating server is running
 	fmt.Println("Server is running on :8080 http://localhost:8080/home")

@@ -16,7 +16,7 @@ import (
 // ////
 func renderTemplate(w http.ResponseWriter, tmplName string, data interface{}) {
 	// Taken from hangman
-	tmpl, err := template.New(tmplName).Funcs(template.FuncMap{"join": join, "contains": containsString}).ParseFiles("site_web/Template/" + tmplName + ".html")
+	tmpl, err := template.New(tmplName).Funcs(template.FuncMap{"join": join, "contains": containsString}).ParseFiles("forum_API/Template/" + tmplName + ".html")
 	if err != nil {
 		fmt.Println("Error parsing template:", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
