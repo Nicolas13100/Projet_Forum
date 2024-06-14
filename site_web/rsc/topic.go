@@ -272,3 +272,77 @@ func favoriteTopicHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func likeTopicHandler(w http.ResponseWriter, r *http.Request) {
+
+	// Check method
+	if r.Method != "UPDATE" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	user_id, ok := r.Context().Value("userID").(int)
+	if !ok {
+		http.Error(w, "User ID not found in context", http.StatusInternalServerError)
+		return
+	}
+
+	// Parse data
+	err := r.ParseForm()
+	if err != nil {
+		http.Error(w, "Failed to parse form data", http.StatusBadRequest)
+		return
+	}
+
+	// Retrieve topicID from the request
+	topicID := r.FormValue("topicID")
+
+	// Check if the user has already liked the topic
+	if alreadyLikedTopic(user_id, topicID) {
+		err := neutralLikeComment(user_id, topicID) //bandite
+		if err != nil {
+			fmt.Printf("took of like on comment: %v\n", err)
+			return
+		}
+		return
+	}
+
+	// Insert user into database
+	stmt, err := db.Prepare("INSERT INTO react_topic (topic_id, user_id, status) VALUES (?, ?, 1)")
+	if err != nil {
+		http.Error(w, "Failed to prepare SQL statement", http.StatusInternalServerError)
+		return
+	}
+	defer func(stmt *sql.Stmt) {
+		err := stmt.Close()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(stmt) //
+	_, err = stmt.Exec(topicID, user_id)
+	if err != nil {
+		http.Error(w, "Failed to execute SQL statement", http.StatusInternalServerError)
+		return
+	}
+
+	// Return success response
+	response := map[string]string{"message": "Topic liked successfully"}
+	jsonResponse, _ := json.Marshal(response)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write(jsonResponse)
+	if err != nil {
+		fmt.Println("RegisterHandler: Error writing response after topic liked successfully : " + err.Error())
+		return
+	}
+}
+
+func alreadyLikedTopic() bool {
+	var exists bool
+	err := db.QueryRow("SELECT EXISTS(SELECT 1 FROM react_topic WHERE user_id = ? AND message_id = ? status = 1)", userID, messageID, status).Scan(&exists)
+	if err != nil { //bandite
+		fmt.Println(err)
+		return false
+	}
+	return exists
+}
