@@ -40,7 +40,7 @@ func RUN() {
 	http.HandleFunc("/favoriteTopic", API.Authenticate(API.FavoriteTopicHandler))
 
 	// Comment Topic
-	http.HandleFunc("/commentTopic", API.Authenticate(API.CommentHandler))
+	http.HandleFunc("/commentTopic", API.Authenticate(API.CommentHandler)) // work for both comment a topic and comment a comment
 	http.HandleFunc("/updateComment", API.Authenticate(API.UpdateCommentHandler))
 
 	// Like Comment

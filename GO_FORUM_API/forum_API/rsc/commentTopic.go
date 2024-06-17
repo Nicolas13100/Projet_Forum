@@ -171,7 +171,7 @@ func UpdateCommentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if authorID != userID || !admin {
+	if authorID != userID && !admin {
 		response := APIResponse{Status: http.StatusForbidden, Message: "You do not have access to this topic"}
 		sendResponse(w, response)
 		return

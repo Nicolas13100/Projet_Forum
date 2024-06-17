@@ -1,5 +1,7 @@
 package API
 
+import "time"
+
 // User struct to represent user data
 type User struct {
 	UserID           int    `json:"user_id"`
@@ -51,4 +53,14 @@ type Topic struct {
 	Status       int    `json:"status"`
 	IsPrivate    bool   `json:"is_private"`
 	UserID       int    `json:"user_id"`
+}
+
+// Message struct to represent a message in the database
+type Message struct {
+	MessageID     int       `json:"message_id"`
+	Body          string    `json:"body"`
+	DateSent      time.Time `json:"date_sent"`
+	TopicID       int       `json:"topic_id"`
+	BaseMessageID *int      `json:"base_message_id"`
+	UserID        int       `json:"user_id"`
 }
