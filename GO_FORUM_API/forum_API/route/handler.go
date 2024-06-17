@@ -53,6 +53,9 @@ func RUN() {
 	http.HandleFunc("/declineFriend", API.Authenticate(API.DeclineFriendHandler))
 	http.HandleFunc("/deleteFriend", API.Authenticate(API.DeleteFriendHandler))
 
+	// Search
+	http.HandleFunc("/search", API.Authenticate(API.SearchHandler))
+
 	// Serve static files from the "forum_API/static" directory
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("forum_API/static"))))
 

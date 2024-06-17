@@ -64,3 +64,8 @@ type Message struct {
 	BaseMessageID *int      `json:"base_message_id"`
 	UserID        int       `json:"user_id"`
 }
+
+type SearchResults struct {
+	Topics   []Topic   `json:"topics"`
+	Messages []Message `json:"messages"`
+}
