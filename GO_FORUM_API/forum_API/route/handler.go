@@ -13,7 +13,8 @@ func RUN() {
 	http.HandleFunc("/getHome", API.Authenticate(API.GetAllTopic))
 	http.HandleFunc("/getPost/:id", API.Authenticate(API.GetTopic))
 	http.HandleFunc("/getUser/:id", API.Authenticate(API.GetUser))
-
+	http.HandleFunc("/getAllTopicMessage/:id", API.Authenticate(API.GetAllTopicMessage))
+	http.HandleFunc("/getAllMessageAnswer/id", API.Authenticate(API.GetAllMessageAnswer))
 	//Admin
 	http.HandleFunc("/modifyTopic", API.Authenticate(API.ModifyTopicHandler))
 	http.HandleFunc("/banUser", API.Authenticate(API.BanUserHandler))

@@ -1,26 +1,29 @@
-const express = require('express');
-const app = express();
-const cors = require('cors');
-const cookieParser = require('cookie-parser');
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, 'data.env') });
-const port = process.env.PORT || 3300; // 3300 is the default port if not found 3000
-const DisplayRoutes = require('./src/routes/routes');
+const express = require('express');
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
+const displayRoutes = require('./src/routes/routes');
+
+const app = express();
+
+app.use(cors());
+app.use('/static', express.static(path.resolve(__dirname, '../frontEnd/static')));
+app.set('view engine', 'ejs');
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
 const viewsDirectories = [
     path.resolve(__dirname, '../frontend/templates'),
 ];
-app.set ('view engine', 'ejs');
+app.set('views', viewsDirectories);
 
-
-app.use(cors());
 app.use(cookieParser());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.set ('views', viewsDirectories);
-app.use ('/', DisplayRoutes);
+app.use('/', displayRoutes);
 
-
-
+const port = process.env.PORT || 3300;
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
