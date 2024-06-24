@@ -13,7 +13,8 @@ func RUN() {
 	http.HandleFunc("/getHome", API.Authenticate(API.GetAllTopic))
 	http.HandleFunc("/getPost/:id", API.Authenticate(API.GetTopic))
 	http.HandleFunc("/getUser/:id", API.Authenticate(API.GetUser))
-
+	http.HandleFunc("/getAllTopicMessage/:id", API.Authenticate(API.GetAllTopicMessage))
+	http.HandleFunc("/getAllMessageAnswer/id", API.Authenticate(API.GetAllMessageAnswer))
 	//Admin
 	http.HandleFunc("/modifyTopic", API.Authenticate(API.ModifyTopicHandler))
 	http.HandleFunc("/banUser", API.Authenticate(API.BanUserHandler))
@@ -39,7 +40,7 @@ func RUN() {
 	http.HandleFunc("/favoriteTopic", API.Authenticate(API.FavoriteTopicHandler))
 
 	// Comment Topic
-	http.HandleFunc("/commentTopic", API.Authenticate(API.CommentHandler))
+	http.HandleFunc("/commentTopic", API.Authenticate(API.CommentHandler)) // work for both comment a topic and comment a comment
 	http.HandleFunc("/updateComment", API.Authenticate(API.UpdateCommentHandler))
 
 	// Like Comment
@@ -51,6 +52,9 @@ func RUN() {
 	http.HandleFunc("/acceptFriend", API.Authenticate(API.AcceptFriendHandler))
 	http.HandleFunc("/declineFriend", API.Authenticate(API.DeclineFriendHandler))
 	http.HandleFunc("/deleteFriend", API.Authenticate(API.DeleteFriendHandler))
+
+	// Search
+	http.HandleFunc("/search", API.Authenticate(API.SearchHandler))
 
 	// Serve static files from the "forum_API/static" directory
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("forum_API/static"))))

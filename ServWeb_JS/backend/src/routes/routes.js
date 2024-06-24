@@ -1,51 +1,36 @@
 const express = require('express');
-const axios = require('axios');
 const router = express.Router();
 
 router.get('/', (req, res) => {
-    const data = { title: 'Home' };
-    res.render('home', data);
-
+    res.render('home', { title: 'Home' });
 });
 
 router.get('/category', (req, res) => {
-    const data = { title: 'Category' };
-    res.render('category', data);
+    res.render('category', { title: 'Category' });
 });
 
 router.get('/createTopic', (req, res) => {
-    const data = { title: 'CreateTopic' };
-    res.render('createTopic', data);
+    res.render('createTopic', { title: 'CreateTopic' });
 });
 
 router.get('/landingPage', (req, res) => {
-    const data = { title: 'LandingPage' };
-    res.render('landingPage', data);
+    res.render('landingPage', { title: 'LandingPage' });
 });
 
 router.get('/login', (req, res) => {
-    const data = { title: 'Login' };
-    res.render('login', data);
+    res.render('login', { title: 'Login' });
 });
 
 router.get('/message', (req, res) => {
-    const data = { title: 'Message' };
-    res.render('message', data);
-
+    res.render('message', { title: 'Message' });
 });
 
 router.get('/profil', (req, res) => {
-    const data = { title: 'Profil' };
-    res.render('profil', data);
+    res.render('profil', { title: 'Profil' });
 });
 
 router.get('/search', (req, res) => {
-    const data = { title: 'Search' };
-    res.render('search', data);
+    res.render('search', { title: 'Search' });
 });
 
-
-
-
-
-
+module.exports = router;
