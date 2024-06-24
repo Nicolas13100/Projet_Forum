@@ -18,12 +18,13 @@ func InitDB() error {
 	// Test the connection
 	if err := db.Ping(); err != nil {
 		// Close the connection if the ping fails
-		if err := db.Close(); err != nil {
-			return err
+		if closeErr := db.Close(); closeErr != nil {
+			return fmt.Errorf("ping error: %v, close error: %v", err, closeErr)
 		}
 		return err
 	}
 
+	fmt.Println("Connection to MySQL database successfully established")
 	return nil
 }
 
