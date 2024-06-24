@@ -103,10 +103,6 @@ main {
 }
 
 
-
-.profil_publication__number {
-}
-
 .profil_followers, .profil_publication, .profil_following {
     display: flex;
     margin: 20px 0px;
@@ -121,10 +117,15 @@ main {
     border-radius: 20px;
 }
 
+
+/*
+.profil_publication__number {
+}
+
 .profil_followers__text {
 }
 
-.profil_followers__number {
+ .profil_followers__number {
 }
 
 .profil_following__text {
@@ -134,7 +135,7 @@ main {
 }
 
 .profil_informations__text__description {
-}
+} */
 .profil_biogragraphy__text{
     width: 100px;
  }

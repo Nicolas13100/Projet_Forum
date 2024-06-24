@@ -57,9 +57,7 @@ padding-top: 70px;
     align-items: center;
 }
 .class-form{
-    width: 100%;
-    height: 90%;
-    display: flex;
+   display: flex;
     justify-content: center;
     align-items: center;
 }
@@ -67,7 +65,7 @@ padding-top: 70px;
     position: relative;
     text-align: center;
     width: 100%;
-    height: 11;
+    height: 17px;
     display: flex;
     align-items: center;
     flex-direction: column;
@@ -106,16 +104,33 @@ border-radius: 30px;
 .devises{
     display: flex;
     align-items: center;
-    flex-direction: column;
+    justify-content: center;
+   flex-direction: column;
     gap: 10px;
+    width: 500px;
+ 
 }
+.devises-container{
+    height: 300px;
+    max-width: 420px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    gap: 20px;
+    padding: 5px 10px;
+    border-radius: 10px;
+  }
+ 
+
 .devise{
     display: flex;
+    align-items: center;
     gap: 20px;
-    width:200px;
-     background-color: rgba(69, 69, 69, 0.587);
-     padding: 5px 10px;
-     border-radius: 10px;
+    width: 150px;
+    height: 50px;
+    background-color: rgba(69, 69, 69, 0.587);
+    padding: 5px 10px;
+    border-radius: 10px;
   }
   .devise input{
     width: 20px;
@@ -138,15 +153,14 @@ input[type="checkbox"]:hover {
 /*********SUBMIT BUTTON**********/
 
 .form__submit{
-    position: absolute;
     bottom: -80px;
     font-weight: 700;
- padding: 7px;
-width: 100px;
-border: solid 1px var(--koko-color);
-background-color:var(--secondary);
-color: var(--text-dark);
-border-radius: 30px;
+    padding: 7px;
+    width: 100px;
+    border: solid 1px var(--koko-color);
+    background-color:var(--secondary);
+    color: var(--text-dark);
+    border-radius: 30px;
 }
 .form__submit:hover{
     transition: 0.3s;
@@ -188,14 +202,27 @@ right:100px;
 }
 /******************MEDIA QUERIESù***************/
 @media screen and (max-width: 400px) {
-    .main-form{
-        width: 100%;
+    body{
+        overflow: hidden;
         height: 100vh;
         display: flex;
     }
-    .form__group input.title{
+    .main-form{
+        margin-top: 100px;
+        width: 100%;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+    .create_Topic{
         position: absolute;
-        top: -50px;
+        top: 0;
+        background-color: blueviolet;
+    }
+    .form__group input.title{
+        width: 100%;
+        top: -30px;
         height: 60px;
         font-size: 20px;
     }
