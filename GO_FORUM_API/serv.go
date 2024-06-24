@@ -7,9 +7,9 @@ import (
 )
 
 func main() {
-	route.RUN()
 	err := API.InitDB()
 	if err != nil {
 		fmt.Println(err)
 	}
+	route.RUN()
 }
