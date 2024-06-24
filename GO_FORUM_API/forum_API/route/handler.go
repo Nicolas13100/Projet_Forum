@@ -60,7 +60,7 @@ func RUN() {
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("forum_API/static"))))
 
 	// Print statement indicating server is running
-	fmt.Println("Server is running on :8080 http://localhost:8080/home")
+	fmt.Println("Server is running on :8080 http://localhost:8080")
 
 	// Start the server
 	if err := http.ListenAndServe(":8080", nil); err != nil {
