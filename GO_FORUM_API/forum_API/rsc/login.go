@@ -20,8 +20,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseMultipartForm(10 << 20) // Max size 10 MB
 	if err != nil {
 		fmt.Println(err)
-		response := APIResponse{Status: http.StatusBadRequest, Message: "Failed to parse form data"}
-		sendResponse(w, response)
+		handleError(w, StatusBadRequest, "Failed to parse form data")
 		return
 	}
 
@@ -49,8 +48,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		err = saveProfilePic(file, profilePicPath+filename)
 		if err != nil {
 			fmt.Println(err)
-			response := APIResponse{Status: http.StatusInternalServerError, Message: "Error saving profile picture"}
-			sendResponse(w, response)
+			handleError(w, StatusInternalServerError, "Error saving profile picture")
 			return
 		}
 	}
@@ -60,22 +58,19 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	err = db.QueryRow("SELECT COUNT(*) FROM users_table WHERE username = ? OR email = ?", username, mail).Scan(&existingUser)
 	if err != nil {
 		fmt.Println(err)
-		response := APIResponse{Status: http.StatusInternalServerError, Message: "Error checking existing user"}
-		sendResponse(w, response)
+		handleError(w, StatusInternalServerError, "Error checking existing user")
 		return
 	}
 
 	if existingUser > 0 {
-		response := APIResponse{Status: http.StatusBadRequest, Message: "Username or email already exists"}
-		sendResponse(w, response)
+		handleError(w, StatusBadRequest, "Username or email already exists")
 		return
 	}
 
 	// Validate password
 	isValid := validatePassword(password)
 	if !isValid {
-		response := APIResponse{Status: http.StatusBadRequest, Message: "Password incorrect, please use passwords with at least one lowercase letter, one uppercase letter, one digit, and a minimum length of 8 characters and a special character"}
-		sendResponse(w, response)
+		handleError(w, StatusBadRequest, "Password requirements not met")
 		return
 	}
 
@@ -86,32 +81,40 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	err = createUser(username, mail, hashedPassword, biography, profilePicPath+filename)
 	if err != nil {
 		fmt.Println(err)
-		response := APIResponse{Status: http.StatusInternalServerError, Message: "Error creating user"}
-		sendResponse(w, response)
+		handleError(w, StatusInternalServerError, "Error creating user")
 		return
 	}
 
-	response := APIResponse{Status: http.StatusOK, Message: "User registered successfully"}
+	// Respond with success message
+	response := APIResponse{Status: StatusOK, Message: "User registered successfully"}
 	sendResponse(w, response)
 }
 
 // LoginHandler Handler for user login
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
-
 	// Check if the request method is POST
 	if r.Method == "POST" {
 		// Parse form data
 		err := r.ParseForm()
 		if err != nil {
 			fmt.Println(err)
-			response := APIResponse{Status: http.StatusBadRequest, Message: "Failed to parse form data"}
-			sendResponse(w, response)
+			handleError(w, StatusBadRequest, "Failed to parse form data")
 			return
 		}
 
 		// Retrieve username and password from the form
 		username := r.FormValue("username")
-		password := hashPassword(r.FormValue("password"))
+		password := r.FormValue("password")
+
+		// Validate password
+		isValid := validatePassword(password)
+		if !isValid {
+			handleError(w, StatusBadRequest, "Password requirements not met")
+			return
+		}
+
+		// Hash password
+		hashedPassword := hashPassword(password)
 
 		// Query the database to check if the user exists and the password is correct
 		var storedPassword string
@@ -119,15 +122,13 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		err = db.QueryRow("SELECT user_id, password FROM users_table WHERE username = ?", username).Scan(&userID, &storedPassword)
 		if err != nil {
 			fmt.Println(err)
-			response := APIResponse{Status: http.StatusTeapot, Message: "Invalid username or password"}
-			sendResponse(w, response)
+			handleError(w, StatusUnauthorized, "Invalid username or password")
 			return
 		}
 
 		// Verify password
-		if storedPassword != password {
-			response := APIResponse{Status: http.StatusTeapot, Message: "Invalid username or password"}
-			sendResponse(w, response)
+		if storedPassword != hashedPassword {
+			handleError(w, StatusUnauthorized, "Invalid username or password")
 			return
 		}
 
@@ -135,64 +136,59 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		token, err := generateToken(userID)
 		if err != nil {
 			fmt.Println(err)
-			response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to generate token"}
-			sendResponse(w, response)
+			handleError(w, StatusInternalServerError, "Failed to generate token")
 			return
 		}
-		response := APIResponse{Status: http.StatusOK, Message: "Authentication successful", Token: token}
+
+		// Respond with success message and token
+		response := APIResponse{Status: StatusOK, Message: "Authentication successful", Token: token}
 		sendResponse(w, response)
 		return
 	}
-	response := APIResponse{Status: http.StatusMethodNotAllowed, Message: "AMethod not allowed"}
-	sendResponse(w, response)
+
+	// If request method is not POST, return method not allowed
+	handleError(w, StatusMethodNotAllowed, "Method not allowed")
 }
 
 // Authenticate Middleware function to Authenticate requests
 func Authenticate(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenString := r.Header.Get("Authorization")
-
 		if tokenString == "" {
-			response := APIResponse{Status: http.StatusUnauthorized, Message: "Unauthorized: please log in"}
-			sendResponse(w, response)
+			handleError(w, http.StatusUnauthorized, "Unauthorized: please log in")
 			return
 		}
 
-		// Query the database to check token validity
-		var response APIResponse
+		var _ APIResponse
 		var userID int
 		var endDate time.Time
+
+		// Query the database to check token validity
 		err := db.QueryRow("SELECT user_id, end_date FROM tokens WHERE token = ?", tokenString).Scan(&userID, &endDate)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
-				response = APIResponse{Status: http.StatusUnauthorized, Message: "Unauthorized: invalid token"}
+				handleError(w, http.StatusUnauthorized, "Unauthorized: invalid token")
 			} else {
-				response = APIResponse{Status: http.StatusInternalServerError, Message: "Internal server error"}
+				handleError(w, http.StatusInternalServerError, "Internal server error")
 			}
-
-			sendResponse(w, response)
 			return
 		}
 
 		// Check if the token is expired
 		if time.Now().After(endDate) {
-			// Extend the token's expiration by 24 hours
 			newEndDate := endDate.Add(24 * time.Hour)
 			_, err = db.Exec("UPDATE tokens SET end_date = ? WHERE token = ?", newEndDate, tokenString)
 			if err != nil {
-				response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to extend token expiration, please re-log"}
-				sendResponse(w, response)
+				handleError(w, http.StatusInternalServerError, "Failed to extend token expiration, please re-log")
 				return
 			}
-			return
 		}
 
 		// Query the users_table to check if the user is an admin or a moderator
 		var isAdmin, isModerator int
 		err = db.QueryRow("SELECT isAdmin, isModerator FROM users_table WHERE user_id = ?", userID).Scan(&isAdmin, &isModerator)
 		if err != nil {
-			response = APIResponse{Status: http.StatusInternalServerError, Message: "Internal server error"}
-			sendResponse(w, response)
+			handleError(w, http.StatusInternalServerError, "Internal server error")
 			return
 		}
 
@@ -201,10 +197,10 @@ func Authenticate(next http.HandlerFunc) http.HandlerFunc {
 		isModeratorBool := isModerator == 1
 
 		// Token is valid and not expired
-		// Pass userID, isAdminBool, and isModeratorBool to the next handler
-		ctx := context.WithValue(r.Context(), "UserID", userID)
-		ctx = context.WithValue(ctx, "IsAdmin", isAdminBool)
-		ctx = context.WithValue(ctx, "IsModerator", isModeratorBool)
+		// Pass userID, isAdminBool, and isModeratorBool to the next handler via context
+		ctx := context.WithValue(r.Context(), userIDKey, userID)
+		ctx = context.WithValue(ctx, isAdminKey, isAdminBool)
+		ctx = context.WithValue(ctx, isModeratorKey, isModeratorBool)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}
 }
@@ -213,16 +209,26 @@ func Authenticate(next http.HandlerFunc) http.HandlerFunc {
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	// Extract token from the request headers
 	tokenString := r.Header.Get("Authorization")
-	// Get the user ID from the context
-	userID := r.Context().Value("UserID").(int)
-
-	err := deleteTokenFromDB(userID, tokenString)
-	if err != nil {
-		response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to logout"}
-		sendResponse(w, response)
+	if tokenString == "" {
+		handleError(w, http.StatusUnauthorized, "Unauthorized: missing token")
 		return
 	}
 
+	// Get the user ID from the context
+	userID, ok := r.Context().Value(userIDKey).(int)
+	if !ok {
+		handleError(w, http.StatusInternalServerError, "Failed to get user ID from context")
+		return
+	}
+
+	// Delete the token from the database
+	err := deleteTokenFromDB(userID, tokenString)
+	if err != nil {
+		handleError(w, http.StatusInternalServerError, "Failed to logout")
+		return
+	}
+
+	// Respond with success message
 	response := APIResponse{Status: http.StatusOK, Message: "Logged out successfully"}
 	sendResponse(w, response)
 }
@@ -230,10 +236,9 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 // DashboardHandler Handler for dashboard
 func DashboardHandler(w http.ResponseWriter, r *http.Request) {
 	// Retrieve userID from the context
-	userID, ok := r.Context().Value("UserID").(int)
+	userID, ok := r.Context().Value(userIDKey).(int)
 	if !ok {
-		response := APIResponse{Status: http.StatusInternalServerError, Message: "User ID not found in context"}
-		sendResponse(w, response)
+		handleError(w, http.StatusInternalServerError, "User ID not found in context")
 		return
 	}
 
@@ -260,40 +265,35 @@ func DashboardHandler(w http.ResponseWriter, r *http.Request) {
 		&userData.ProfilePic,
 	)
 	if err != nil {
-		fmt.Println(err)
-		response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to fetch user data"}
-		sendResponse(w, response)
+		handleError(w, http.StatusInternalServerError, "Failed to fetch user data")
+		return
+	}
+
+	// Prepare JSON response
+	jsonResponse, err := json.Marshal(userData)
+	if err != nil {
+		handleError(w, http.StatusInternalServerError, "Failed to marshal JSON response")
 		return
 	}
 
 	// Send back the user data in the response
-	jsonResponse, err := json.Marshal(userData)
-	if err != nil {
-		fmt.Println(err)
-		response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to marshal JSON response"}
-		sendResponse(w, response)
-		return
-	}
-	response := APIResponse{Status: http.StatusOK, Message: "Correctly fetched user data", JsonResp: jsonResponse}
+	response := APIResponse{Status: http.StatusOK, Message: "Successfully fetched user data", JsonResp: jsonResponse}
 	sendResponse(w, response)
 }
 
 // ChangeUserDataHandler Handler for changing login credentials
 func ChangeUserDataHandler(w http.ResponseWriter, r *http.Request) {
 	// Retrieve userID from the context
-	userID, ok := r.Context().Value("userID").(int)
+	userID, ok := r.Context().Value(userIDKey).(int)
 	if !ok {
-		response := APIResponse{Status: http.StatusInternalServerError, Message: "User ID not found in context"}
-		sendResponse(w, response)
+		handleError(w, http.StatusInternalServerError, "User ID not found in context")
 		return
 	}
 
 	// Parse form data including file upload
 	err := r.ParseMultipartForm(10 << 20) // Max size 10 MB
 	if err != nil {
-		fmt.Println(err)
-		response := APIResponse{Status: http.StatusBadRequest, Message: "Failed to parse form data"}
-		sendResponse(w, response)
+		handleError(w, http.StatusBadRequest, "Failed to parse form data")
 		return
 	}
 
@@ -301,15 +301,12 @@ func ChangeUserDataHandler(w http.ResponseWriter, r *http.Request) {
 	newUsername := r.FormValue("username")
 	newEmail := r.FormValue("email")
 	newBiography := r.FormValue("biography")
-	newPassWord := hashPassword(r.FormValue("password"))
-	// You can retrieve other fields similarly
+	newPassword := hashPassword(r.FormValue("password")) // Assuming hashPassword function is defined
 
 	// Handle profile picture upload
 	file, _, err := r.FormFile("profile_pic")
 	if err != nil {
-		fmt.Println(err)
-		response := APIResponse{Status: http.StatusBadRequest, Message: "Error retrieving profile picture"}
-		sendResponse(w, response)
+		handleError(w, http.StatusBadRequest, "Error retrieving profile picture")
 		return
 	}
 	defer func(file multipart.File) {
@@ -324,20 +321,17 @@ func ChangeUserDataHandler(w http.ResponseWriter, r *http.Request) {
 	filename := strconv.Itoa(userID) + filepath.Ext(r.FormValue("profile_pic"))
 	err = saveProfilePic(file, profilePicPath+filename)
 	if err != nil {
-		fmt.Println(err)
-		response := APIResponse{Status: http.StatusInternalServerError, Message: "Error saving profile picture"}
-		sendResponse(w, response)
+		handleError(w, http.StatusInternalServerError, "Error saving profile picture")
 		return
 	}
 
 	// Update the corresponding fields in the database
-	_, err = db.Exec("UPDATE users_table SET username = ?, email = ?,password = ?, biography = ?,profile_pic = ? WHERE user_id = ?", newUsername, newEmail, newPassWord, newBiography, profilePicPath+filename, userID)
+	_, err = db.Exec("UPDATE users_table SET username = ?, email = ?, password = ?, biography = ?, profile_pic = ? WHERE user_id = ?", newUsername, newEmail, newPassword, newBiography, profilePicPath+filename, userID)
 	if err != nil {
-		fmt.Println(err)
-		response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to update user data"}
-		sendResponse(w, response)
+		handleError(w, http.StatusInternalServerError, "Failed to update user data")
 		return
 	}
+
 	response := APIResponse{Status: http.StatusOK, Message: "User data updated successfully"}
 	sendResponse(w, response)
 }

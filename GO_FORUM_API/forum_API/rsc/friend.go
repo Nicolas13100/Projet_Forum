@@ -18,6 +18,7 @@ func AddFriendHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Retrieve askedID from the form data
 	askedIDStr := r.FormValue("askedID")
 	if askedIDStr == "" {
 		response := APIResponse{Status: http.StatusBadRequest, Message: "askedID parameter is required"}
@@ -34,7 +35,6 @@ func AddFriendHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if the friendship request already exists
-	// You need to replace db with your actual database connection
 	var status int
 	err = db.QueryRow("SELECT status FROM friendship WHERE sender_id = ? AND reciver_id = ?", userID, askedID).Scan(&status)
 	if err == nil {
@@ -66,6 +66,7 @@ func AddFriendHandler(w http.ResponseWriter, r *http.Request) {
 		sendResponse(w, response)
 		return
 	}
+
 	response := APIResponse{Status: http.StatusCreated, Message: "Friendship request successfully sent"}
 	sendResponse(w, response)
 }
@@ -129,6 +130,7 @@ func DeclineFriendHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Retrieve askedID from the form data
 	askedIDStr := r.FormValue("askedID")
 	if askedIDStr == "" {
 		response := APIResponse{Status: http.StatusBadRequest, Message: "askedID parameter is required"}
@@ -136,9 +138,9 @@ func DeclineFriendHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Convert askedID to an integer
 	askedID, err := strconv.Atoi(askedIDStr)
 	if err != nil {
-		fmt.Println(err)
 		response := APIResponse{Status: http.StatusBadRequest, Message: "Invalid askedID parameter"}
 		sendResponse(w, response)
 		return
@@ -148,7 +150,6 @@ func DeclineFriendHandler(w http.ResponseWriter, r *http.Request) {
 	var status int
 	err = db.QueryRow("SELECT status FROM friendship WHERE sender_id = ? AND reciver_id = ? AND status = 0", askedID, userID).Scan(&status)
 	if errors.Is(err, sql.ErrNoRows) {
-		fmt.Println(err)
 		response := APIResponse{Status: http.StatusBadRequest, Message: "No pending friend request found"}
 		sendResponse(w, response)
 		return
@@ -162,11 +163,11 @@ func DeclineFriendHandler(w http.ResponseWriter, r *http.Request) {
 	updatedAt := time.Now()
 	_, err = db.Exec("UPDATE friendship SET status = 2, updated_at = ? WHERE sender_id = ? AND reciver_id = ?", updatedAt, askedID, userID)
 	if err != nil {
-		fmt.Println(err)
 		response := APIResponse{Status: http.StatusInternalServerError, Message: "Error declining friendship request"}
 		sendResponse(w, response)
 		return
 	}
+
 	response := APIResponse{Status: http.StatusOK, Message: "Friend request declined successfully"}
 	sendResponse(w, response)
 }
@@ -180,6 +181,7 @@ func DeleteFriendHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Retrieve friendID from the form data
 	friendIDStr := r.FormValue("friendID")
 	if friendIDStr == "" {
 		response := APIResponse{Status: http.StatusBadRequest, Message: "friendID parameter is required"}
@@ -187,6 +189,7 @@ func DeleteFriendHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Convert friendID to an integer
 	friendID, err := strconv.Atoi(friendIDStr)
 	if err != nil {
 		fmt.Println(err)
@@ -199,7 +202,6 @@ func DeleteFriendHandler(w http.ResponseWriter, r *http.Request) {
 	var status int
 	err = db.QueryRow("SELECT status FROM friendship WHERE (sender_id = ? AND reciver_id = ?) OR (sender_id = ? AND reciver_id = ?)", userID, friendID, friendID, userID).Scan(&status)
 	if errors.Is(err, sql.ErrNoRows) {
-		fmt.Println(err)
 		response := APIResponse{Status: http.StatusBadRequest, Message: "No friendship found with the specified user"}
 		sendResponse(w, response)
 		return
@@ -217,6 +219,7 @@ func DeleteFriendHandler(w http.ResponseWriter, r *http.Request) {
 		sendResponse(w, response)
 		return
 	}
+
 	response := APIResponse{Status: http.StatusOK, Message: "Friend successfully deleted"}
 	sendResponse(w, response)
 }

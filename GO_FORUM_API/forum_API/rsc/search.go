@@ -3,10 +3,12 @@ package API
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 )
 
+// SearchHandler handles search queries for topics and messages
 // SearchHandler handles search queries for topics and messages
 func SearchHandler(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query().Get("q")
@@ -50,13 +52,19 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 	sendResponse(w, response)
 }
 
+// Helper functions to search topics and messages
 func searchTopics(query string) ([]Topic, error) {
 	queryString := "SELECT topic_id, title, body, creation_date, status, is_private, user_id FROM Topics_Table WHERE title LIKE ? OR body LIKE ?"
 	rows, err := db.Query(queryString, "%"+query+"%", "%"+query+"%")
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(rows)
 
 	var topics []Topic
 	for rows.Next() {
@@ -79,7 +87,12 @@ func searchMessages(query string) ([]Message, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(rows)
 
 	var messages []Message
 	for rows.Next() {

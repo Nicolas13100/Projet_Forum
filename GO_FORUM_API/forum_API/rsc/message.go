@@ -25,7 +25,7 @@ func GetAllTopicMessage(w http.ResponseWriter, r *http.Request) {
         WHERE topic_id = ?`, topicID)
 	if err != nil {
 		log.Printf("Error querying database: %v", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		sendResponse(w, APIResponse{Status: http.StatusInternalServerError, Message: "Internal Server Error"})
 		return
 	}
 	defer func() {
@@ -40,7 +40,7 @@ func GetAllTopicMessage(w http.ResponseWriter, r *http.Request) {
 		var message Message
 		if err := rows.Scan(&message.MessageID, &message.Body, &message.DateSent, &message.TopicID, &message.UserID); err != nil {
 			log.Printf("Error scanning row: %v", err)
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			sendResponse(w, APIResponse{Status: http.StatusInternalServerError, Message: "Internal Server Error"})
 			return
 		}
 		messages = append(messages, message)
@@ -49,7 +49,7 @@ func GetAllTopicMessage(w http.ResponseWriter, r *http.Request) {
 	// Check for errors from iterating over rows
 	if err := rows.Err(); err != nil {
 		log.Printf("Error iterating over rows: %v", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		sendResponse(w, APIResponse{Status: http.StatusInternalServerError, Message: "Internal Server Error"})
 		return
 	}
 
@@ -57,7 +57,7 @@ func GetAllTopicMessage(w http.ResponseWriter, r *http.Request) {
 	messagesJSON, err := json.Marshal(messages)
 	if err != nil {
 		log.Printf("Failed to marshal JSON: %v", err)
-		http.Error(w, "Failed to marshal JSON", http.StatusInternalServerError)
+		sendResponse(w, APIResponse{Status: http.StatusInternalServerError, Message: "Failed to marshal JSON"})
 		return
 	}
 
@@ -72,18 +72,18 @@ func GetAllMessageAnswer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Extract topic_id from URL parameter
+	// Extract message_id from URL parameter
 	vars := mux.Vars(r)
 	messageID := vars["id"]
 
-	// Query the database for messages with the given topic_id
+	// Query the database for answers with the given message_id as base_message_id
 	rows, err := db.Query(`
         SELECT message_id, body, date_sent, base_message_id, user_id
         FROM Messages_Table
-        WHERE message_id = ?`, messageID)
+        WHERE base_message_id = ?`, messageID)
 	if err != nil {
 		log.Printf("Error querying database: %v", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		sendResponse(w, APIResponse{Status: http.StatusInternalServerError, Message: "Internal Server Error"})
 		return
 	}
 	defer func() {
@@ -98,7 +98,7 @@ func GetAllMessageAnswer(w http.ResponseWriter, r *http.Request) {
 		var message Message
 		if err := rows.Scan(&message.MessageID, &message.Body, &message.DateSent, &message.BaseMessageID, &message.UserID); err != nil {
 			log.Printf("Error scanning row: %v", err)
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			sendResponse(w, APIResponse{Status: http.StatusInternalServerError, Message: "Internal Server Error"})
 			return
 		}
 		messages = append(messages, message)
@@ -107,7 +107,7 @@ func GetAllMessageAnswer(w http.ResponseWriter, r *http.Request) {
 	// Check for errors from iterating over rows
 	if err := rows.Err(); err != nil {
 		log.Printf("Error iterating over rows: %v", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		sendResponse(w, APIResponse{Status: http.StatusInternalServerError, Message: "Internal Server Error"})
 		return
 	}
 
@@ -115,7 +115,7 @@ func GetAllMessageAnswer(w http.ResponseWriter, r *http.Request) {
 	messagesJSON, err := json.Marshal(messages)
 	if err != nil {
 		log.Printf("Failed to marshal JSON: %v", err)
-		http.Error(w, "Failed to marshal JSON", http.StatusInternalServerError)
+		sendResponse(w, APIResponse{Status: http.StatusInternalServerError, Message: "Failed to marshal JSON"})
 		return
 	}
 

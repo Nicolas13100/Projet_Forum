@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/gorilla/mux"
+	"log"
 	"net/http"
 )
 
@@ -38,6 +39,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "User not found", http.StatusNotFound)
 		} else {
 			// For other errors, return 500 Internal Server Error
+			log.Println("Error querying database:", err)
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		}
 		return
@@ -46,6 +48,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	// Convert user struct to JSON
 	userJSON, err := json.Marshal(user)
 	if err != nil {
+		log.Println("Error marshaling user to JSON:", err)
 		http.Error(w, "Failed to marshal JSON", http.StatusInternalServerError)
 		return
 	}

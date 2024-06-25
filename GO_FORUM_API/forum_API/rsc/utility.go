@@ -4,49 +4,32 @@ import (
 	"crypto/rand"
 	"crypto/sha512"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
-	"html/template"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"os"
 	"regexp"
-	"strings"
 	"time"
 )
 
-// ////
-func renderTemplate(w http.ResponseWriter, tmplName string, data interface{}) {
-	// Taken from hangman
-	tmpl, err := template.New(tmplName).Funcs(template.FuncMap{"join": join, "contains": containsString}).ParseFiles("forum_API/Template/" + tmplName + ".html")
-	if err != nil {
-		fmt.Println("Error parsing template:", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
+const (
+	StatusOK                  = http.StatusOK
+	StatusBadRequest          = http.StatusBadRequest
+	StatusUnauthorized        = http.StatusUnauthorized
+	StatusInternalServerError = http.StatusInternalServerError
+	StatusMethodNotAllowed    = http.StatusMethodNotAllowed
+)
 
-	err = tmpl.ExecuteTemplate(w, tmplName, data)
-	if err != nil {
-		fmt.Println("Error executing template:", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-}
+// contextKey defines a custom type for context keys
+type contextKey string
 
-func join(s []string, sep string) string {
-	// same
-	return strings.Join(s, sep)
-}
-func containsString(slice []string, str string) bool {
-	for _, s := range slice {
-		if s == str {
-			return true
-		}
-	}
-	return false
-}
-
-///////
+const (
+	userIDKey      contextKey = "UserID"
+	isAdminKey     contextKey = "IsAdmin"
+	isModeratorKey contextKey = "IsModerator"
+)
 
 // Function to save profile picture to the server
 func saveProfilePic(file multipart.File, path string) error {
@@ -126,4 +109,21 @@ func generateToken(userID int) (string, error) {
 	}
 
 	return token, nil
+}
+
+func handleError(w http.ResponseWriter, status int, message string) {
+	response := APIResponse{Status: status, Message: message}
+	sendResponse(w, response)
+}
+
+func sendResponse(w http.ResponseWriter, response APIResponse) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.Status)
+	err := json.NewEncoder(w).Encode(response)
+	if err != nil {
+		fmt.Println("send response error:", err)
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "API send response error"}
+		sendResponse(w, response)
+		return
+	}
 }

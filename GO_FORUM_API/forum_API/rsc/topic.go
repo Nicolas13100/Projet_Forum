@@ -312,11 +312,11 @@ func GetAllTopic(w http.ResponseWriter, r *http.Request) {
 		sendResponse(w, response)
 		return
 	}
-	defer func(rows *sql.Rows) {
+	defer func() {
 		if err := rows.Close(); err != nil {
 			log.Println("Error closing rows:", err)
 		}
-	}(rows)
+	}()
 
 	var topics []Topic
 	for rows.Next() {
@@ -332,6 +332,13 @@ func GetAllTopic(w http.ResponseWriter, r *http.Request) {
 		topics = append(topics, topic)
 	}
 
+	if err := rows.Err(); err != nil {
+		log.Println("Error with rows iteration:", err)
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "Internal Server Error"}
+		sendResponse(w, response)
+		return
+	}
+
 	topicsJson, err := json.Marshal(topics)
 	if err != nil {
 		log.Println("Error marshaling topics to JSON:", err)
@@ -343,7 +350,6 @@ func GetAllTopic(w http.ResponseWriter, r *http.Request) {
 	response := APIResponse{Status: http.StatusOK, Message: "Success", JsonResp: topicsJson}
 	sendResponse(w, response)
 }
-
 func GetTopic(w http.ResponseWriter, r *http.Request) {
 	// Check method
 	if r.Method != http.MethodGet {
@@ -351,7 +357,8 @@ func GetTopic(w http.ResponseWriter, r *http.Request) {
 		sendResponse(w, response)
 		return
 	}
-	vars := mux.Vars(r) // Assuming you're using Gorilla mux or similar
+
+	vars := mux.Vars(r)
 	id := vars["id"]
 
 	// Query the database for the topic with the given ID
