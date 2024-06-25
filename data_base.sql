@@ -3,18 +3,19 @@ CREATE TABLE users_table
     user_id           INT AUTO_INCREMENT,
     username          VARCHAR(26)  NOT NULL,
     email             VARCHAR(50)  NOT NULL,
-    password          VARCHAR(200)  NOT NULL,
+    password          VARCHAR(200) NOT NULL,
     registration_date DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP(),
     last_login_date   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP(),
     biography         VARCHAR(200),
-    isAdmin           TINYINT      NOT NULL DEFAULT 0 CHECK (isAdmin = 0 OR isAdmin = 1),         -- 0 false, 1 true
-    isModerator       TINYINT      NOT NULL DEFAULT 0 CHECK (isModerator = 0 OR isModerator = 1), -- 0 false, 1 true
-    is_deleted        TINYINT      NOT NULL DEFAULT 0 CHECK ( is_deleted = 0 OR is_deleted = 1 ), -- 0 false, 1 true
-    profile_pic       VARCHAR(100) NOT NULL,
+    isAdmin           TINYINT(1)   NOT NULL DEFAULT 0 CHECK (isAdmin IN (0, 1)),
+    isModerator       TINYINT(1)   NOT NULL DEFAULT 0 CHECK (isModerator IN (0, 1)),
+    is_deleted        TINYINT(1)   NOT NULL DEFAULT 0 CHECK (is_deleted IN (0, 1)),
+    profile_pic       VARCHAR(100) NOT NULL DEFAULT '/static/images/userAvatar/default.png',
     PRIMARY KEY (user_id),
     UNIQUE (username),
     UNIQUE (email)
-)ENGINE = INNODB;
+) ENGINE = InnoDB;
+
 
 CREATE TABLE Topics_Table
 (
@@ -27,7 +28,7 @@ CREATE TABLE Topics_Table
     user_id       INT           NOT NULL,
     PRIMARY KEY (topic_id),
     FOREIGN KEY (user_id) REFERENCES users_table (user_id)
-)ENGINE = INNODB;
+) ENGINE = INNODB;
 
 CREATE TABLE Tags_Table
 (
@@ -35,7 +36,7 @@ CREATE TABLE Tags_Table
     tag_name VARCHAR(50) NOT NULL,
     PRIMARY KEY (tag_id),
     UNIQUE (tag_name)
-)ENGINE = INNODB;
+) ENGINE = INNODB;
 
 CREATE TABLE Messages_Table
 (
@@ -49,7 +50,7 @@ CREATE TABLE Messages_Table
     FOREIGN KEY (topic_id) REFERENCES Topics_Table (topic_id) ON DELETE CASCADE,
     FOREIGN KEY (base_message_id) REFERENCES Messages_Table (message_id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users_Table (user_id) ON DELETE CASCADE
-)ENGINE = INNODB;
+) ENGINE = INNODB;
 
 CREATE TABLE Admin_Logs_Table
 (
@@ -57,7 +58,7 @@ CREATE TABLE Admin_Logs_Table
     action_descrbition TEXT     NOT NULL,
     date_performed     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(),
     PRIMARY KEY (log_id)
-)ENGINE = INNODB;
+) ENGINE = INNODB;
 
 CREATE TABLE images_Table
 (
@@ -72,7 +73,7 @@ CREATE TABLE images_Table
     UNIQUE (image_link),
     FOREIGN KEY (message_id) REFERENCES Messages_Table (message_id) ON DELETE CASCADE,
     FOREIGN KEY (topic_id) REFERENCES Topics_Table (topic_id) ON DELETE CASCADE
-)ENGINE = INNODB;
+) ENGINE = INNODB;
 
 CREATE TABLE have
 (
@@ -81,7 +82,7 @@ CREATE TABLE have
     PRIMARY KEY (topic_id, tag_id),
     FOREIGN KEY (topic_id) REFERENCES Topics_Table (topic_id),
     FOREIGN KEY (tag_id) REFERENCES Tags_Table (tag_id)
-)ENGINE = INNODB;
+) ENGINE = INNODB;
 
 CREATE TABLE admin
 (
@@ -92,7 +93,7 @@ CREATE TABLE admin
     FOREIGN KEY (topic_id) REFERENCES Topics_Table (topic_id),
     FOREIGN KEY (message_id) REFERENCES Messages_Table (message_id),
     FOREIGN KEY (log_id) REFERENCES Admin_Logs_Table (log_id)
-)ENGINE = INNODB;
+) ENGINE = INNODB;
 
 CREATE TABLE react_topic
 (
@@ -102,7 +103,7 @@ CREATE TABLE react_topic
     PRIMARY KEY (user_id, topic_id),
     FOREIGN KEY (user_id) REFERENCES users_Table (user_id),
     FOREIGN KEY (topic_id) REFERENCES Topics_Table (topic_id)
-)ENGINE = INNODB;
+) ENGINE = INNODB;
 
 CREATE TABLE friendship
 (
@@ -114,7 +115,7 @@ CREATE TABLE friendship
     PRIMARY KEY (sender_id, reciver_id),
     FOREIGN KEY (sender_id) REFERENCES users_Table (user_id),
     FOREIGN KEY (reciver_id) REFERENCES users_Table (user_id)
-)ENGINE = INNODB;
+) ENGINE = INNODB;
 
 CREATE TABLE react_message
 (
@@ -124,7 +125,7 @@ CREATE TABLE react_message
     PRIMARY KEY (user_id, message_id),
     FOREIGN KEY (user_id) REFERENCES users_Table (user_id),
     FOREIGN KEY (message_id) REFERENCES Messages_Table (message_id)
-)ENGINE = INNODB;
+) ENGINE = INNODB;
 
 CREATE TABLE follow
 (
@@ -134,7 +135,7 @@ CREATE TABLE follow
     PRIMARY KEY (user_id, topic_id),
     FOREIGN KEY (user_id) REFERENCES users_Table (user_id),
     FOREIGN KEY (topic_id) REFERENCES Topics_Table (topic_id)
-)ENGINE = INNODB;
+) ENGINE = INNODB;
 
 CREATE TABLE tokens
 (
