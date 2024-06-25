@@ -129,8 +129,6 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		handleError(w, StatusUnauthorized, "Invalid username or password")
 		return
 	}
-	//fmt.Println(hashedPassword)
-	//fmt.Println(storedPassword)
 	// Verify password
 	if storedPassword != hashedPassword {
 		handleError(w, StatusUnauthorized, "Invalid username or password")
