@@ -1,10 +1,7 @@
 package API
 
 import (
-	"context"
-	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"mime/multipart"
@@ -147,61 +144,6 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	response := APIResponse{Status: StatusOK, Message: "Authentication successful", Token: token}
 	sendResponse(w, response)
 	return
-}
-
-// Authenticate Middleware function to Authenticate requests
-func Authenticate(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		tokenString := r.Header.Get("Authorization")
-		if tokenString == "" {
-			handleError(w, http.StatusUnauthorized, "Unauthorized: please log in")
-			return
-		}
-
-		var _ APIResponse
-		var userID int
-		var endDate time.Time
-
-		// Query the database to check token validity
-		err := db.QueryRow("SELECT user_id, end_date FROM tokens WHERE token = ?", tokenString).Scan(&userID, &endDate)
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				handleError(w, http.StatusUnauthorized, "Unauthorized: invalid token")
-			} else {
-				handleError(w, http.StatusInternalServerError, "Internal server error")
-			}
-			return
-		}
-
-		// Check if the token is expired
-		if time.Now().After(endDate) {
-			newEndDate := endDate.Add(24 * time.Hour)
-			_, err = db.Exec("UPDATE tokens SET end_date = ? WHERE token = ?", newEndDate, tokenString)
-			if err != nil {
-				handleError(w, http.StatusInternalServerError, "Failed to extend token expiration, please re-log")
-				return
-			}
-		}
-
-		// Query the users_table to check if the user is an admin or a moderator
-		var isAdmin, isModerator int
-		err = db.QueryRow("SELECT isAdmin, isModerator FROM users_table WHERE user_id = ?", userID).Scan(&isAdmin, &isModerator)
-		if err != nil {
-			handleError(w, http.StatusInternalServerError, "Internal server error")
-			return
-		}
-
-		// Convert TINYINT values to booleans
-		isAdminBool := isAdmin == 1
-		isModeratorBool := isModerator == 1
-
-		// Token is valid and not expired
-		// Pass userID, isAdminBool, and isModeratorBool to the next handler via context
-		ctx := context.WithValue(r.Context(), userIDKey, userID)
-		ctx = context.WithValue(ctx, isAdminKey, isAdminBool)
-		ctx = context.WithValue(ctx, isModeratorKey, isModeratorBool)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	}
 }
 
 // LogoutHandler Handler for user logout
