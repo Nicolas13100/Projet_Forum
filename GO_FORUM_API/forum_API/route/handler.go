@@ -12,51 +12,51 @@ func RUN() {
 	r := mux.NewRouter()
 
 	// Setting up HTTP routes for different endpoints
-	r.HandleFunc("/getHome", API.GetAllTopic).Methods("GET")
-	r.HandleFunc("/getPost/{id}", API.GetTopic).Methods("GET")
-	r.HandleFunc("/getUser/{id}", API.GetUser).Methods("GET")
-	r.HandleFunc("/getAllTopicMessage/{id}", API.GetAllTopicMessage).Methods("GET")
-	r.HandleFunc("/getAllMessageAnswer/{id}", API.GetAllMessageAnswer).Methods("GET")
+	r.HandleFunc("/api/getHome", API.GetAllTopic).Methods("GET")
+	r.HandleFunc("/api/getTopic/{id}", API.GetTopic).Methods("GET")
+	r.HandleFunc("/api/getUser/{id}", API.GetUser).Methods("GET")
+	r.HandleFunc("/api/getAllTopicMessage/{id}", API.GetAllTopicMessage).Methods("GET")
+	r.HandleFunc("/api/getAllMessageAnswer/{id}", API.GetAllMessageAnswer).Methods("GET")
 
 	// Admin
-	r.HandleFunc("/modifyTopic", API.ModifyTopicHandler).Methods("POST")
-	r.HandleFunc("/banUser", API.BanUserHandler).Methods("POST")
+	r.HandleFunc("/api/modifyTopic", API.ModifyTopicHandler).Methods("POST")
+	r.HandleFunc("/api/banUser", API.BanUserHandler).Methods("POST")
 
 	// Logging
-	r.HandleFunc("/register", API.RegisterHandler).Methods("POST")
-	r.HandleFunc("/login", API.LoginHandler).Methods("POST")
-	r.HandleFunc("/logout", API.LogoutHandler).Methods("POST")
-	r.HandleFunc("/dashboard", API.DashboardHandler).Methods("GET")
-	r.HandleFunc("/changeUserData", API.ChangeUserDataHandler).Methods("POST")
+	r.HandleFunc("/api/register", API.RegisterHandler).Methods("POST")
+	r.HandleFunc("/api/login", API.LoginHandler).Methods("POST")
+	r.HandleFunc("/api/logout", API.LogoutHandler).Methods("POST")
+	r.HandleFunc("/api/dashboard", API.DashboardHandler).Methods("GET")
+	r.HandleFunc("/api/changeUserData", API.ChangeUserDataHandler).Methods("POST")
 
 	// Create Topic
-	r.HandleFunc("/createTopic", API.CreateTopicHandler).Methods("POST")
-	r.HandleFunc("/deleteTopic", API.DeleteTopicHandler).Methods("DELETE")
-	r.HandleFunc("/deleteComment", API.DeleteCommentHandler).Methods("DELETE")
+	r.HandleFunc("/api/createTopic", API.CreateTopicHandler).Methods("POST")
+	r.HandleFunc("/api/deleteTopic", API.DeleteTopicHandler).Methods("DELETE")
+	r.HandleFunc("/api/deleteComment", API.DeleteCommentHandler).Methods("DELETE")
 
 	// Like Topic
-	r.HandleFunc("/likeTopic", API.LikeTopicHandler).Methods("POST")
-	r.HandleFunc("/dislikeTopic", API.DislikeTopicHandler).Methods("POST")
+	r.HandleFunc("/api/likeTopic", API.LikeTopicHandler).Methods("POST")
+	r.HandleFunc("/api/dislikeTopic", API.DislikeTopicHandler).Methods("POST")
 
 	// Favorite Topic
-	r.HandleFunc("/favoriteTopic", API.FavoriteTopicHandler).Methods("POST")
+	r.HandleFunc("/api/favoriteTopic", API.FavoriteTopicHandler).Methods("POST")
 
 	// Comment Topic
-	r.HandleFunc("/commentTopic", API.CommentHandler).Methods("POST") // work for both comment a topic and comment a comment
-	r.HandleFunc("/updateComment", API.UpdateCommentHandler).Methods("POST")
+	r.HandleFunc("/api/commentTopic", API.CommentHandler).Methods("POST") // work for both comment a topic and comment a comment
+	r.HandleFunc("/api/updateComment", API.UpdateCommentHandler).Methods("POST")
 
 	// Like Comment
-	r.HandleFunc("/likeComment", API.LikeCommentHandler).Methods("POST")
-	r.HandleFunc("/dislikeComment", API.DislikeCommentHandler).Methods("POST")
+	r.HandleFunc("/api/likeComment", API.LikeCommentHandler).Methods("POST")
+	r.HandleFunc("/api/dislikeComment", API.DislikeCommentHandler).Methods("POST")
 
 	// UserFriends
-	r.HandleFunc("/addFriend", API.AddFriendHandler).Methods("POST")
-	r.HandleFunc("/acceptFriend", API.AcceptFriendHandler).Methods("POST")
-	r.HandleFunc("/declineFriend", API.DeclineFriendHandler).Methods("POST")
-	r.HandleFunc("/deleteFriend", API.DeleteFriendHandler).Methods("POST")
+	r.HandleFunc("/api/addFriend", API.AddFriendHandler).Methods("POST")
+	r.HandleFunc("/api/acceptFriend", API.AcceptFriendHandler).Methods("POST")
+	r.HandleFunc("/api/declineFriend", API.DeclineFriendHandler).Methods("POST")
+	r.HandleFunc("/api/deleteFriend", API.DeleteFriendHandler).Methods("POST")
 
 	// Search
-	r.HandleFunc("/search", API.SearchHandler).Methods("GET")
+	r.HandleFunc("/api/search", API.SearchHandler).Methods("GET")
 
 	// Serve static files from the "forum_API/static" directory
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("forum_API/static"))))
