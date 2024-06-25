@@ -3,7 +3,7 @@ CREATE TABLE users_table
     user_id           INT AUTO_INCREMENT,
     username          VARCHAR(26)  NOT NULL,
     email             VARCHAR(50)  NOT NULL,
-    password          VARCHAR(50)  NOT NULL,
+    password          VARCHAR(200)  NOT NULL,
     registration_date DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP(),
     last_login_date   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP(),
     biography         VARCHAR(200),

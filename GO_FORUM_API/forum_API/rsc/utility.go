@@ -12,6 +12,7 @@ import (
 	"os"
 	"regexp"
 	"time"
+	"unicode"
 )
 
 const (
@@ -63,15 +64,77 @@ func hashPassword(password string) string {
 }
 
 // Function to validate the password
-func validatePassword(password string) bool {
+func validatePassword(password string) (bool, string) {
+	// Check length
+	if len(password) < 8 {
+		return false, "Password must be at least 8 characters long"
+	}
+
+	var (
+		hasUpperCase bool
+		hasLowerCase bool
+		hasDigit     bool
+		hasSpecial   bool
+	)
+
+	// Check each character in the password
+	for _, char := range password {
+		switch {
+		case unicode.IsUpper(char):
+			hasUpperCase = true
+		case unicode.IsLower(char):
+			hasLowerCase = true
+		case unicode.IsDigit(char):
+			hasDigit = true
+		case isSpecialChar(char):
+			hasSpecial = true
+		}
+	}
+
+	// Check if all criteria are met
+	if !hasUpperCase {
+		return false, "Password must contain at least one uppercase letter"
+	}
+	if !hasLowerCase {
+		return false, "Password must contain at least one lowercase letter"
+	}
+	if !hasDigit {
+		return false, "Password must contain at least one digit"
+	}
+	if !hasSpecial {
+		return false, "Password must contain at least one special character"
+	}
+
+	// If all checks pass
+	return true, "Password is valid"
+}
+
+// Function to check if a character is one of the allowed special characters
+func isSpecialChar(char rune) bool {
+	switch char {
+	case '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '-', '_', '=', '+', '~',
+		'[', ']', '{', '}', '|', ';', ':', '\'', '"', ',', '.', '<', '>', '/', '?':
+		return true
+	default:
+		return false
+	}
+}
+
+// Function to validate the password
+func validateUsername(username string) bool {
+	return len(username) >= 3 && len(username) <= 25
+}
+
+// Function to validate the password
+func validateEmail(mail string) bool {
 	// Define the regex pattern
-	pattern := `^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$`
+	pattern := `^[a-zA-Z0-9.!#$%&'*+/=?^_` + "`" + `{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$`
 
 	// Compile the regex pattern into a regex object
 	regex := regexp.MustCompile(pattern)
 
-	// Check if the password matches the regex pattern
-	return regex.MatchString(password)
+	// Check if the email matches the regex pattern
+	return regex.MatchString(mail)
 }
 
 // deleteTokenFromDB deletes the token for the specified user ID
