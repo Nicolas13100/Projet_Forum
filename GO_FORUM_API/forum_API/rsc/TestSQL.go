@@ -45,23 +45,3 @@ func InitDB() error {
 	fmt.Println("Connection to MySQL database successfully established")
 	return nil
 }
-
-func createUser(username, email, password, biography, profilePic string) error {
-	hashedPassword := hashPassword(password)
-	// Insert user into database
-	stmt, err := db.Prepare("INSERT INTO users_table (username, email, password, biography, profile_pic) VALUES (?, ?, ?, ?, ?)")
-	if err != nil {
-		return err
-	}
-	defer func(stmt *sql.Stmt) {
-		err := stmt.Close()
-		if err != nil {
-			fmt.Println(err)
-		}
-	}(stmt)
-	_, err = stmt.Exec(username, email, hashedPassword, biography, profilePic)
-	if err != nil {
-		return err
-	}
-	return nil
-}

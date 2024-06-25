@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
@@ -55,4 +56,24 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 
 	response := APIResponse{Status: http.StatusOK, Message: "Success", JsonResp: userJSON}
 	sendResponse(w, response)
+}
+
+func createUser(username, email, password, biography, profilePic string) error {
+	hashedPassword := hashPassword(password)
+	// Insert user into database
+	stmt, err := db.Prepare("INSERT INTO users_table (username, email, password, biography, profile_pic) VALUES (?, ?, ?, ?, ?)")
+	if err != nil {
+		return err
+	}
+	defer func(stmt *sql.Stmt) {
+		err := stmt.Close()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(stmt)
+	_, err = stmt.Exec(username, email, hashedPassword, biography, profilePic)
+	if err != nil {
+		return err
+	}
+	return nil
 }
