@@ -23,12 +23,25 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		handleError(w, StatusBadRequest, "Failed to parse form data")
 		return
 	}
-
 	// Extract user registration data
 	username := r.FormValue("username")
 	password := r.FormValue("password")
 	mail := r.FormValue("email")
 	biography := r.FormValue("bio")
+
+	// Validate username
+	isUsernameValid := validateUsername(username)
+	if !isUsernameValid {
+		handleError(w, StatusBadRequest, "Password requirements not met")
+		return
+	}
+
+	// Validate email
+	isEmailValid := validateEmail(mail)
+	if !isEmailValid {
+		handleError(w, StatusBadRequest, "Password requirements not met")
+		return
+	}
 
 	var profilePicPath string
 	var filename string
@@ -43,14 +56,15 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		}(file)
 
 		// Save the image to a location on your server
-		profilePicPath = "/assets/images/userAvatar/"
+		profilePicPath = "/static/images/userAvatar/"
 		filename = username + filepath.Ext(header.Filename)
-		err = saveProfilePic(file, profilePicPath+filename)
-		if err != nil {
-			fmt.Println(err)
-			handleError(w, StatusInternalServerError, "Error saving profile picture")
-			return
-		}
+		// To do, think if we save pics here or not
+		//err = saveProfilePic(file, profilePicPath+filename)
+		//if err != nil {
+		//	fmt.Println(err)
+		//	handleError(w, StatusInternalServerError, "Error saving profile picture")
+		//	return
+		//}
 	}
 
 	// Check if username or email already exist in the database
@@ -68,9 +82,9 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate password
-	isValid := validatePassword(password)
+	isValid, message := validatePassword(password)
 	if !isValid {
-		handleError(w, StatusBadRequest, "Password requirements not met")
+		handleError(w, StatusBadRequest, "Password requirements not met"+message)
 		return
 	}
 
@@ -92,62 +106,47 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 // LoginHandler Handler for user login
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
-	// Check if the request method is POST
-	if r.Method == "POST" {
-		// Parse form data
-		err := r.ParseForm()
-		if err != nil {
-			fmt.Println(err)
-			handleError(w, StatusBadRequest, "Failed to parse form data")
-			return
-		}
+	// Parse form data
+	err := r.ParseForm()
+	if err != nil {
+		fmt.Println(err)
+		handleError(w, StatusBadRequest, "Failed to parse form data")
+		return
+	}
+	// Retrieve username and password from the form
+	username := r.FormValue("username")
+	password := r.FormValue("password")
 
-		// Retrieve username and password from the form
-		username := r.FormValue("username")
-		password := r.FormValue("password")
+	// Hash password
+	hashedPassword := hashPassword(password)
 
-		// Validate password
-		isValid := validatePassword(password)
-		if !isValid {
-			handleError(w, StatusBadRequest, "Password requirements not met")
-			return
-		}
-
-		// Hash password
-		hashedPassword := hashPassword(password)
-
-		// Query the database to check if the user exists and the password is correct
-		var storedPassword string
-		var userID int
-		err = db.QueryRow("SELECT user_id, password FROM users_table WHERE username = ?", username).Scan(&userID, &storedPassword)
-		if err != nil {
-			fmt.Println(err)
-			handleError(w, StatusUnauthorized, "Invalid username or password")
-			return
-		}
-
-		// Verify password
-		if storedPassword != hashedPassword {
-			handleError(w, StatusUnauthorized, "Invalid username or password")
-			return
-		}
-
-		// Authentication successful, generate token
-		token, err := generateToken(userID)
-		if err != nil {
-			fmt.Println(err)
-			handleError(w, StatusInternalServerError, "Failed to generate token")
-			return
-		}
-
-		// Respond with success message and token
-		response := APIResponse{Status: StatusOK, Message: "Authentication successful", Token: token}
-		sendResponse(w, response)
+	// Query the database to check if the user exists and the password is correct
+	var storedPassword string
+	var userID int
+	err = db.QueryRow("SELECT user_id, password FROM users_table WHERE username = ?", username).Scan(&userID, &storedPassword)
+	if err != nil {
+		fmt.Println(err)
+		handleError(w, StatusUnauthorized, "Invalid username or password")
+		return
+	}
+	// Verify password
+	if storedPassword != hashedPassword {
+		handleError(w, StatusUnauthorized, "Invalid username or password")
 		return
 	}
 
-	// If request method is not POST, return method not allowed
-	handleError(w, StatusMethodNotAllowed, "Method not allowed")
+	// Authentication successful, generate token
+	token, err := generateToken(userID)
+	if err != nil {
+		fmt.Println(err)
+		handleError(w, StatusInternalServerError, "Failed to generate token")
+		return
+	}
+
+	// Respond with success message and token
+	response := APIResponse{Status: StatusOK, Message: "Authentication successful", Token: token}
+	sendResponse(w, response)
+	return
 }
 
 // Authenticate Middleware function to Authenticate requests

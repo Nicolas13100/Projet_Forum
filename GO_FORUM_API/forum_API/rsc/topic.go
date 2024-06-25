@@ -350,6 +350,7 @@ func GetAllTopic(w http.ResponseWriter, r *http.Request) {
 	response := APIResponse{Status: http.StatusOK, Message: "Success", JsonResp: topicsJson}
 	sendResponse(w, response)
 }
+
 func GetTopic(w http.ResponseWriter, r *http.Request) {
 	// Check method
 	if r.Method != http.MethodGet {
