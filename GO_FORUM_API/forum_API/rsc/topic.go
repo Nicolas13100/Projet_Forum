@@ -8,7 +8,9 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 	"log"
+	"math"
 	"net/http"
+	"strconv"
 )
 
 func CreateTopicHandler(w http.ResponseWriter, r *http.Request) {
@@ -304,8 +306,24 @@ func GetAllTopic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Query the topics
-	rows, err := db.Query("SELECT topic_id, title, body, creation_date, status, is_private, user_id FROM Topics_Table")
+	// Extract page and pageSize from request URL
+	vars := mux.Vars(r)
+	pageStr := vars["page"]
+	pageSizeStr := vars["pageSize"]
+
+	// Parse page and pageSize from string to integers
+	page, err := strconv.Atoi(pageStr)
+	if err != nil || page < 1 {
+		page = 1 // Default to page 1 if page parameter is invalid
+	}
+	pageSize, err := strconv.Atoi(pageSizeStr)
+	if err != nil || pageSize < 1 {
+		pageSize = 10 // Default page size to 10 if pageSize parameter is invalid
+	}
+	offset := (page - 1) * pageSize
+
+	// Query the topics with pagination
+	rows, err := db.Query("SELECT topic_id, title, body, creation_date, status, is_private, user_id FROM Topics_Table LIMIT ? OFFSET ?", pageSize, offset)
 	if err != nil {
 		log.Println("Error querying database:", err)
 		response := APIResponse{Status: http.StatusInternalServerError, Message: "Internal Server Error"}
@@ -339,15 +357,30 @@ func GetAllTopic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	topicsJson, err := json.Marshal(topics)
+	// Count total number of rows (topics) in the table
+	var totalCount int
+	err = db.QueryRow("SELECT COUNT(*) FROM Topics_Table").Scan(&totalCount)
 	if err != nil {
-		log.Println("Error marshaling topics to JSON:", err)
+		log.Println("Error counting total rows:", err)
 		response := APIResponse{Status: http.StatusInternalServerError, Message: "Internal Server Error"}
 		sendResponse(w, response)
 		return
 	}
 
-	response := APIResponse{Status: http.StatusOK, Message: "Success", JsonResp: topicsJson}
+	// Calculate total pages
+	totalPages := int(math.Ceil(float64(totalCount) / float64(pageSize)))
+
+	// Prepare response
+	responseData := map[string]interface{}{
+		"status":      http.StatusOK,
+		"message":     "Success",
+		"topics":      topics,
+		"totalCount":  totalCount,
+		"totalPages":  totalPages,
+		"currentPage": page,
+	}
+
+	response := APIResponse{Status: http.StatusOK, Message: "Success", Resp: responseData}
 	sendResponse(w, response)
 }
 
@@ -386,5 +419,67 @@ func GetTopic(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := APIResponse{Status: http.StatusOK, Message: "Success", JsonResp: topicJSON}
+	sendResponse(w, response)
+}
+
+func GetTopicTagsNamesByTopicId(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		response := APIResponse{Status: http.StatusMethodNotAllowed, Message: "Method not allowed"}
+		sendResponse(w, response)
+		return
+	}
+
+	// Extract topicId from URL parameter
+	vars := mux.Vars(r)
+	topicIdStr := vars["id"]
+
+	topicId, err := strconv.Atoi(topicIdStr)
+	if err != nil || topicId < 1 {
+		log.Println("Invalid topic ID:", topicIdStr)
+		response := APIResponse{Status: http.StatusBadRequest, Message: "Invalid topic ID"}
+		sendResponse(w, response)
+		return
+	}
+
+	rows, err := db.Query("SELECT t.tag_id, t.tag_name FROM Tags_Table t JOIN TopicTags tt ON t.tag_id = tt.tag_id WHERE tt.topic_id = ?;", topicId)
+
+	if err != nil {
+		log.Println("Error querying database:", err)
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "Internal Server Error"}
+		sendResponse(w, response)
+		return
+	}
+	defer func() {
+		if err := rows.Close(); err != nil {
+			log.Println("Error closing rows:", err)
+		}
+	}()
+
+	var tagInfos []TagInfo
+
+	// Process rows
+	for rows.Next() {
+		var tagID int
+		var tagName string
+		if err := rows.Scan(&tagID, &tagName); err != nil {
+			log.Println("Error scanning row:", err)
+			continue
+		}
+		tagInfo := TagInfo{
+			TagID:   tagID,
+			TagName: tagName,
+		}
+		tagInfos = append(tagInfos, tagInfo)
+	}
+
+	if err := rows.Err(); err != nil {
+		log.Println("Error iterating over rows:", err)
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "Internal Server Error"}
+		sendResponse(w, response)
+		return
+	}
+
+	// Prepare response with all tag names
+	response := APIResponse{Status: http.StatusOK, Data: tagInfos}
 	sendResponse(w, response)
 }

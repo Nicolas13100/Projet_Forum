@@ -15,16 +15,42 @@ router.get('/createTopic', (req, res) => {
     res.render('createTopic', { title: 'CreateTopic' });
 });
 
-router.get('/home', (req, res) => {
+router.get('/home', async (req, res) => {
+    const url = 'http://localhost:8080/api/getHome/1/10';
+    const TagUrl = 'http://localhost:8080/api/getTopicTag';
+    let response;
+    try {
+        response = await axios.get(url, {});
 
+        // Array to store promises for fetching tag data
+        const tagPromises = [];
 
-
-    const data ={
-        topics : [],
-        user : {
-            profilePic :""
+        // Iterate through topics and fetch tag data
+        for (const topic of response.data.resp.topics) {
+            const topic_id = topic.topic_id;
+            const fetchTagPromise = await axios.get(`${TagUrl}/${topic_id}`, {}); // Adjust URL as per your API endpoint
+            tagPromises.push(fetchTagPromise.data.data);
         }
+
+        // Wait for all tag data requests to resolve
+        const tagResponses = await Promise.all(tagPromises);
+
+        // Merge tag data into respective topics
+        tagResponses.forEach((tagResponse, index) => {
+            response.data.resp.topics[index].tags = tagPromises[index];
+        });
+
+    } catch (error) {
+        console.log(error);
     }
+
+    const data = {
+        topics: response.data.resp.topics,
+        user: {
+            profilePic: ""
+        }
+    };
+
     res.render('home', data);
 });
 

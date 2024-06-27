@@ -12,7 +12,8 @@ func RUN() {
 	r := mux.NewRouter()
 
 	// Setting up HTTP routes for different endpoints
-	r.HandleFunc("/api/getHome", API.GetAllTopic).Methods("GET")
+	r.HandleFunc("/api/getHome/{page}/{pageSize}", API.GetAllTopic).Methods("GET")
+	r.HandleFunc("/api/getTopicTag/{id}", API.GetTopicTagsNamesByTopicId).Methods("GET")
 	r.HandleFunc("/api/getTopic/{id}", API.GetTopic).Methods("GET")
 	r.HandleFunc("/api/getUser/{id}", API.GetUser).Methods("GET")
 	r.HandleFunc("/api/getAllTopicMessage/{id}", API.GetAllTopicMessage).Methods("GET")

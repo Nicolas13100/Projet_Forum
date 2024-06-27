@@ -16,7 +16,6 @@ CREATE TABLE users_table
     UNIQUE (email)
 ) ENGINE = InnoDB;
 
-
 CREATE TABLE Topics_Table
 (
     topic_id      INT AUTO_INCREMENT,
@@ -29,6 +28,15 @@ CREATE TABLE Topics_Table
     PRIMARY KEY (topic_id),
     FOREIGN KEY (user_id) REFERENCES users_table (user_id)
 ) ENGINE = INNODB;
+
+CREATE TABLE TopicTags
+(
+    topic_id INT,
+    tag_id   INT,
+    PRIMARY KEY (topic_id, tag_id),
+    FOREIGN KEY (topic_id) REFERENCES Topics_Table (topic_id),
+    FOREIGN KEY (tag_id) REFERENCES Tags_Table (tag_id)
+) ENGINE = InnoDB;
 
 CREATE TABLE Tags_Table
 (
@@ -156,3 +164,5 @@ CREATE TABLE password_reset_tokens
     PRIMARY KEY (token_id),
     FOREIGN KEY (user_id) REFERENCES users_table (user_id) ON DELETE CASCADE
 ) ENGINE = INNODB;
+
+

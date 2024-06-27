@@ -71,3 +71,5 @@ INSERT INTO follow (user_id, topic_id, followed_date)
 VALUES (1, 2, NOW()),
        (2, 3, NOW()),
        (3, 1, NOW());
+
+INSERT INTO TopicTags (topic_id, tag_id) VALUES (1, 1),(1,2);
