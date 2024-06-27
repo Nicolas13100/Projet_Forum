@@ -13,6 +13,11 @@
     
   </head>
   <body>
+  <% if (message) { %>
+    <div class="error">
+      <%= message %>
+    </div>
+  <% } %>
     <div class="container">
       <div class="forms-container">
 

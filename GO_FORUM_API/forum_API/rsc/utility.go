@@ -133,8 +133,48 @@ func validateEmail(mail string) bool {
 	// Compile the regex pattern into a regex object
 	regex := regexp.MustCompile(pattern)
 
-	// Check if the email matches the regex pattern
-	return regex.MatchString(mail)
+	// Step-by-step validation
+	if len(mail) == 0 {
+		fmt.Println("Error: Email address is empty")
+		return false
+	}
+
+	// Check if the email contains exactly one @ symbol
+	atCount := 0
+	for _, char := range mail {
+		if char == '@' {
+			atCount++
+		}
+	}
+	if atCount != 1 {
+		fmt.Println("Error: Email address must contain exactly one '@' symbol")
+		return false
+	}
+
+	// Split the email into local and domain parts
+	parts := regexp.MustCompile(`@`).Split(mail, 2)
+	localPart, domainPart := parts[0], parts[1]
+
+	// Validate the local part
+	localPattern := `^[a-zA-Z0-9.!#$%&'*+/=?^_` + "`" + `{|}~-]+$`
+	if !regexp.MustCompile(localPattern).MatchString(localPart) {
+		fmt.Println("Error: Invalid characters in the local part")
+		return false
+	}
+
+	// Validate the domain part
+	domainPattern := `^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$`
+	if !regexp.MustCompile(domainPattern).MatchString(domainPart) {
+		fmt.Println("Error: Invalid domain format")
+		return false
+	}
+
+	// Final regex match for overall email format
+	if !regex.MatchString(mail) {
+		fmt.Println("Error: Email does not match the overall pattern")
+		return false
+	}
+	return true
 }
 
 // deleteTokenFromDB deletes the token for the specified user ID
