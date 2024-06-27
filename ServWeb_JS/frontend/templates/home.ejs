@@ -129,13 +129,14 @@
 
                 <% } else { %>
                     <% topics.forEach(topic=> { %>
-
                         <%#!--------------------- PROPERTY OF TOPICS--------------- --%>
                         <article class="post">
                             <div class="post__header">
                                 <div class="post__profile">
                               <span>
-                                <%= topic.title %>
+                                <a href="/topic/<%= topic.topic_id %>">
+                    <%= topic.title %>
+                </a>
                               </span>
                                 </div>
 
@@ -151,24 +152,25 @@
                             <%#!-- CONTENU POST--------------- --%>
                             <div class="post__content">
                                 <!-- si le post contient une image affiché l'image -->
-                              <% if(topic.image){ %>
-                                <div class="post__medias">
-                                  <img class="post__media" src="<%= topic.image %>" alt="Post Content"/>
+                                <% if(topic.image){ %>
+                                    <div class="post__medias">
+                                        <a href="/topic/<%= topic.topic_id %>" class="post__medias">
+                                        <img class="post__media" src="<%= topic.image %>" alt="Post Content"/>
+                                        </a>
+                                    </div>
+                                <% } %>
+                                <div class="post-text">
+                                    <a href="/topic/<%= topic.topic_id %>">
+                                        <p><%= topic.body %></p>
+                                    </a>
                                 </div>
-                              <% } else { %>
-                                <!-- If no image is available, display a default image -->
-                                <div class="post__medias">
-                                  <img class="post__media" src="/static/images/film.png" alt="Default Image"/>
-                                </div>
-                              <% } %>
-
 
                                 <%#!-- TAGS POST--------------- --%>
                                 <div class="post-category">
                                     <% topic.tags.forEach(tag=> { %>
-                                    <a href="/category/<%= tag.tag_id %>" class="category__name">
-                                        <%= tag.tag_name %>
-                                    </a>
+                                        <a href="/category/<%= tag.tag_id %>" class="category__name">
+                                            <%= tag.tag_name %>
+                                        </a>
                                     <% }) %>
                                 </div>
                             </div>
@@ -373,6 +375,7 @@
                     <span class="side-menu__footer-copyright">&copy; 2024 kokGoat FORUM</span>
                 </div>
             </section>
+        </div>
     </section>
 </main>
 
