@@ -59,6 +59,9 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func createUser(username, email, password, biography, profilePic string) error {
+	if len(profilePic) == 0 {
+		profilePic = "/static/images/userAvatar/default.png"
+	}
 	// Insert user into database
 	stmt, err := db.Prepare("INSERT INTO users_table (username, email, password, biography, profile_pic) VALUES (?, ?, ?, ?, ?)")
 	if err != nil {

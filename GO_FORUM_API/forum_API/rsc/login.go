@@ -23,20 +23,20 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	// Extract user registration data
 	username := r.FormValue("username")
 	password := r.FormValue("password")
-	mail := r.FormValue("email")
+	mail := r.FormValue("mail")
 	biography := r.FormValue("bio")
 
 	// Validate username
 	isUsernameValid := validateUsername(username)
 	if !isUsernameValid {
-		handleError(w, StatusBadRequest, "Password requirements not met")
+		handleError(w, StatusBadRequest, "Username must be between 3 and 25 char long ")
 		return
 	}
 
 	// Validate email
 	isEmailValid := validateEmail(mail)
 	if !isEmailValid {
-		handleError(w, StatusBadRequest, "Password requirements not met")
+		handleError(w, StatusBadRequest, "email requirements not met")
 		return
 	}
 

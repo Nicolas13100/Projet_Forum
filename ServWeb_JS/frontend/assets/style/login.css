@@ -188,7 +188,7 @@ form.sign-in-form {
 .panel {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-around;
   text-align: center;
   z-index: 6;
@@ -404,7 +404,7 @@ form.sign-in-form {
   }
 }
 @media screen and (min-width: 871px) {
- .stalone{
-  width: 250px;
- }
+  .stalone{
+    width: 250px;
+  }
 }
