@@ -189,7 +189,8 @@ form.sign-in-form {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-around;
+  /* justify-content: space-around; */
+  gap: 64px;
   text-align: center;
   z-index: 6;
 }

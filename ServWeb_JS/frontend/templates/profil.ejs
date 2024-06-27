@@ -6,10 +6,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="shortcut icon" href="../assets/images/télécharger.png" type="image/x-icon" />
-  <link rel="stylesheet" type="text/css" href="../style/profil.css" />
+  <link rel="stylesheet" type="text/css" href="./style/profil.css" />
   <link rel="stylesheet" type="text/css" href="../style/style.css" />
-  <script src="../script/script.js" defer></script>
-  <script src="../script/topic.js" defer></script>
+  <script src="./script/script.js" defer></script>
+  <script src="./script/topic.js" defer></script>
  
 </head>
 
@@ -113,6 +113,7 @@
       
     </nav>
   </header>
+
 <main class="main_profil">
  <div class="profil_informations">
   <div class="picture">
@@ -121,10 +122,11 @@
   </div>
 </div>
   <div class="contains_information">
+
+               <%#!-- LES NOMBRES DE POSTS ,NOMBRES DE FOLLOWERS & NOMBRES DE COMPTES SUIVIS PAR LE USER,-------------- --%>
+               <%#!-- LES NOMBRES DE POSTS ,NOMBRES DE FOLLOWERS & NOMBRES DE COMPTES SUIVIS PAR LE USER,-------------- --%>
+
   <div class="profil_informations__text">
-    <div class="profil_user">
-      <p class="profil_user__name">Sabrina@37</p>
-    </div>
     <div class="profil_publication">
       <p class="profil_publication__text">Posts</p>
       <p class="profil_publication__number">12</p>
@@ -138,13 +140,17 @@
       <p class="profil_following__number">12</p>
    </div>
   </div>
+  
+          <%#!-- BIOGRAPHIE-------------- --%>
   <div class="profil_biogragraphy">
     <p class="profil_biogragraphy__text" style="font-weight: 800;">Biographie</p>
-    <p class="profil_biogragraphy__content">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim </p>
+    <p class="profil_biogragraphy__content"><%= user.biography%></p>
    </div>
 </div>
-
 </div>
+
+
+          <%#!-- POSTS DE L'UTILISATEUR-------------- --%>
  <section class="content-container">
   <div class="content">
     <div class="posts">
