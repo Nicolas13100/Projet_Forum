@@ -15,8 +15,17 @@ router.get('/createTopic', (req, res) => {
     res.render('createTopic', { title: 'CreateTopic' });
 });
 
-router.get('/landingPage', (req, res) => {
-    res.render('landingPage', { title: 'LandingPage' });
+router.get('/home', (req, res) => {
+
+
+
+    const data ={
+        topics : [],
+        user : {
+            profilePic :""
+        }
+    }
+    res.render('home', data);
 });
 
 router.get('/login', (req, res) => {
