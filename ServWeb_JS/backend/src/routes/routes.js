@@ -2,6 +2,24 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 const FormData = require('form-data');
+const multer = require('multer');
+const path = require('path');
+// Multer configuration
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'ServWeb_JS/frontend/assets/images');
+    },
+    filename: function (req, file, cb) {
+        cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({ storage: storage });
+// Route to handle image upload
+router.post('/uploadImage', upload.single('image'), (req, res) => {
+    // Handle successful upload (if needed)
+    res.json({ imagePath: `/static/images/${req.file.filename}` });
+});
 
 router.get('/', (req, res) => {
     res.render('home', { title: 'Home' });
@@ -12,7 +30,48 @@ router.get('/category', (req, res) => {
 });
 
 router.get('/createTopic', (req, res) => {
+
     res.render('createTopic', { title: 'CreateTopic' });
+});
+
+
+
+router.post('/createTopic', async (req, res) => {
+    const token = req.cookies.token;
+    const logged = token !== undefined;
+
+    if (!logged) {
+        return res.redirect('/login');
+    }
+
+    const { title, description, categories } = req.body;
+
+    try {
+        // Upload image first
+        const uploadImageUrl = "http://localhost:3000/uploadImage"; // Assuming your server endpoint for image upload
+
+        const uploadResponse = await axios.post(uploadImageUrl, req.file);
+
+        const imagePath = uploadResponse.data.imagePath;
+console.log(imagePath)
+        // Then create topic using the retrieved imagePath
+        // const createTopicUrl = "http://localhost:8080/api/createTopic";
+        //
+        // const response = await axios.post(createTopicUrl, {
+        //     title,
+        //     description,
+        //     categories,
+        //     imagePath
+        // });
+        //
+        // const topicID = response.data.topic_id;
+        // // Redirect to the created topic page or handle success accordingly
+        // res.redirect(`/topic/${topicID}`);
+    } catch (err) {
+        console.error(err);
+        // Handle error response
+        res.status(500).send('Error creating topic');
+    }
 });
 
 router.get('/home', async (req, res) => {
