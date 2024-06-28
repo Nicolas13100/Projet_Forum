@@ -123,64 +123,61 @@
     </h1>
   </div>
   <div class="class-form">
-  <form action="#" method="post" class="form">
-    <div class="form__group">
-      <input class="title" type="text" id="title" name="title" placeholder="Title" required oninput="this.value = this.value.toUpperCase()" />
-    </div>
+      <form action="/createTopic" method="post" enctype="multipart/form-data" class="form">
+          <div class="form__group">
+              <input class="title" type="text" id="title" name="title" placeholder="Title" required oninput="this.value = this.value.toUpperCase()" />
+          </div>
 
-    <div class="form__group">
-      <textarea id="description" name="description" placeholder="Description" required></textarea>
-    </div>
+          <div class="form__group">
+              <textarea id="description" name="description" placeholder="Description" required></textarea>
+          </div>
 
-    <div class="devises">
-      <h1 class="h1_devise">SELECT ONLY 03 TAGS</h1>
-      
-  <div class="devises-container">
-      <div class="devise">
-          <input type="checkbox" id="action" name="categories[]" value="action">
-          <label for="action">ACTION</label>
-      </div>
-      <div class="devise">
-          <input type="checkbox" id="comedy" name="categories[]" value="comedy">
-          <label for="comedy">COMEDY</label>
-      </div>
-      <div class="devise">
-          <input type="checkbox" id="drama" name="categories[]" value="drama">
-          <label for="drama">DRAMA</label>
-      </div>
-      <div class="devise">
-          <input type="checkbox" id="fantasy" name="categories[]" value="fantasy">
-          <label for="fantasy">FANTASY</label>
-      </div>
-      <div class="devise">
-          <input type="checkbox" id="romance" name="categories[]" value="romance">
-          <label for="romance">ROMANCE</label>
-      </div>
-      <div class="devise">
-          <input type="checkbox" id="horreur" name="categories[]" value="horreur">
-          <label for="horreur">HORREUR</label>
-      </div>
-      <div class="devise">
-          <input type="checkbox" id="sci_fi" name="categories[]" value="scienceFiction">
-          <label for="scienceFiction">SCIENCE-FICTION</label>
-      </div>
-      <div class="devise">
-          <input type="checkbox" id="anime" name="categories[]" value="anime">
-          <label for="anime">ANIME</label>
-      </div>
-  </div>
-</div>
-  
-  
+          <div class="devises">
+              <h1 class="h1_devise">SELECT ONLY 03 TAGS</h1>
+              <div class="devises-container">
+                  <div class="devise">
+                      <input type="checkbox" id="action" name="categories[]" value="Action">
+                      <label for="action">ACTION</label>
+                  </div>
+                  <div class="devise">
+                      <input type="checkbox" id="comedy" name="categories[]" value="Comedy">
+                      <label for="comedy">COMEDY</label>
+                  </div>
+                  <div class="devise">
+                      <input type="checkbox" id="drama" name="categories[]" value="Drama">
+                      <label for="drama">DRAMA</label>
+                  </div>
+                  <div class="devise">
+                      <input type="checkbox" id="fantasy" name="categories[]" value="Fantasy">
+                      <label for="fantasy">FANTASY</label>
+                  </div>
+                  <div class="devise">
+                      <input type="checkbox" id="romance" name="categories[]" value="Romance">
+                      <label for="romance">ROMANCE</label>
+                  </div>
+                  <div class="devise">
+                      <input type="checkbox" id="horreur" name="categories[]" value="Horror">
+                      <label for="horreur">HORREUR</label>
+                  </div>
+                  <div class="devise">
+                      <input type="checkbox" id="sci_fi" name="categories[]" value="Sci-Fi">
+                      <label for="scienceFiction">SCIENCE-FICTION</label>
+                  </div>
+                  <div class="devise">
+                      <input type="checkbox" id="anime" name="categories[]" value="Anime">
+                      <label for="anime">ANIME</label>
+                  </div>
+              </div>
+          </div>
 
-    <div class="form__group">
-        <label for="image" class="custom-file-upload">Ajouter Une Image</label>
-        <input type="file" id="image" name="image" accept="image/*" required style="display:none;" onchange="previewImage(event)" />
-        <img id="preview-image" src="#" alt="preview" style="max-width: 200px; max-height: 200px;">
-</div>
+          <div class="form__group">
+              <label for="image" class="custom-file-upload">Ajouter Une Image</label>
+              <input type="file" id="image" name="image" accept="image/*" required style="display:none;" onchange="previewImage(event)" />
+              <img id="preview-image" src="#" alt="preview" style="max-width: 200px; max-height: 200px;">
+          </div>
 
-    <button type="submit" class="form__submit">CREATE</button>
-  </form>
+          <button type="submit" class="form__submit">CREATE</button>
+      </form>
 </div>
 </main>
 

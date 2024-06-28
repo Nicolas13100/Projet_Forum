@@ -7,6 +7,7 @@ import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
+	"io"
 	"log"
 	"math"
 	"net/http"
@@ -14,64 +15,116 @@ import (
 )
 
 func CreateTopicHandler(w http.ResponseWriter, r *http.Request) {
-
-	//check method
 	if r.Method != "POST" {
 		response := APIResponse{Status: http.StatusMethodNotAllowed, Message: "Method not allowed"}
 		sendResponse(w, response)
 		return
 	}
 
-	//parse data
-	err := r.ParseMultipartForm(10 << 20)
+	// Step 1: Log the request body
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		response := APIResponse{Status: http.StatusBadRequest, Message: "Failed to parse form data"}
+		response := APIResponse{Status: http.StatusBadRequest, Message: "Failed to read request body"}
 		sendResponse(w, response)
 		return
 	}
+	defer r.Body.Close() // Close the request body at the end of the function
 
-	//check if all the data are here
-	title := r.FormValue("title")
-	body := r.FormValue("body")
-	status := r.FormValue("status")
-	//check image
-	userID, ok := r.Context().Value("userID").(int)
-	if !ok {
-		response := APIResponse{Status: http.StatusInternalServerError, Message: "User ID not found in context"}
-		sendResponse(w, response)
-		return
+	// Step 2: Decode (unmarshal) the JSON into requestData struct
+	var requestData struct {
+		Title       string   `json:"title"`
+		Description string   `json:"description"`
+		Categories  []string `json:"categories"`
+		ImagePath   string   `json:"imagePath"`
+		UserID      int      `json:"userID"`
 	}
 
-	if title == "" || body == "" || status == "" || userID != 0 {
-		response := APIResponse{Status: http.StatusBadRequest, Message: "Missing required form fields"}
-		sendResponse(w, response)
-		return
-	}
-
-	// Insert user into database
-	stmt, err := db.Prepare("INSERT INTO Topics_Table (title, body, status, user_id) VALUES (?, ?, ?,?)") //check user_id
-
+	err = json.Unmarshal(body, &requestData)
 	if err != nil {
-		fmt.Println(err)
+		response := APIResponse{Status: http.StatusBadRequest, Message: "Invalid JSON format"}
+		sendResponse(w, response)
+		return
+	}
+
+	// Step 3: Insert the topic into Topics_Table
+	stmt, err := db.Prepare("INSERT INTO Topics_Table (title, body, status, user_id) VALUES (?, ?, ?, ?)")
+	if err != nil {
 		response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to prepare SQL statement"}
 		sendResponse(w, response)
 		return
 	}
-	defer func(stmt *sql.Stmt) {
-		err := stmt.Close()
-		if err != nil {
-			fmt.Println(err)
-			response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to close SQL statement"}
-			sendResponse(w, response)
-		}
-	}(stmt)
-	_, err = stmt.Exec(title, body, status, userID)
+	defer stmt.Close() // Close the prepared statement at the end of the function
+
+	// Execute the INSERT statement
+	result, err := stmt.Exec(requestData.Title, requestData.Description, 0, requestData.UserID)
 	if err != nil {
-		fmt.Println(err)
-		response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to execute SQL statement"}
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to execute SQL statement for topic creation"}
 		sendResponse(w, response)
 		return
 	}
+
+	// Retrieve the last inserted ID
+	createdTopicID, err := result.LastInsertId()
+	if err != nil {
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to retrieve last insert ID"}
+		sendResponse(w, response)
+		return
+	}
+
+	// Step 4: Insert tags (categories) into Tags_Table and TopicTags
+	for _, categoryName := range requestData.Categories {
+		// Check if the tag exists
+		var tagID int
+		err := db.QueryRow("SELECT tag_id FROM Tags_Table WHERE tag_name = ?", categoryName).Scan(&tagID)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				// Tag doesn't exist, insert into Tags_Table
+				result, err := db.Exec("INSERT INTO Tags_Table (tag_name) VALUES (?)", categoryName)
+				if err != nil {
+					response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to execute SQL statement for tag insertion"}
+					sendResponse(w, response)
+					return
+				}
+				lastInsertID, err := result.LastInsertId()
+				if err != nil {
+					response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to retrieve last insert ID for tag"}
+					sendResponse(w, response)
+					return
+				}
+				tagID = int(lastInsertID) // Convert int64 to int
+			} else {
+				response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to retrieve tag ID"}
+				sendResponse(w, response)
+				return
+			}
+		}
+
+		// Insert into TopicTags
+		_, err = db.Exec("INSERT INTO TopicTags (topic_id, tag_id) VALUES (?, ?)", createdTopicID, tagID)
+		if err != nil {
+			response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to execute SQL statement for topic-tag association"}
+			sendResponse(w, response)
+			return
+		}
+	}
+
+	// Step 5: Insert image path into images_table
+	stmt, err = db.Prepare("INSERT INTO images_table (image_origin_name, image_serv_name, image_link, message_id, topic_id) VALUES ('null', 'null', ?, null, ?)")
+	if err != nil {
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to prepare SQL statement for image path insertion"}
+		sendResponse(w, response)
+		return
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(requestData.ImagePath, createdTopicID)
+	if err != nil {
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "Failed to execute SQL statement for image insertion"}
+		sendResponse(w, response)
+		return
+	}
+
+	// Final response
 	response := APIResponse{Status: http.StatusOK, Message: "Topic created successfully"}
 	sendResponse(w, response)
 }

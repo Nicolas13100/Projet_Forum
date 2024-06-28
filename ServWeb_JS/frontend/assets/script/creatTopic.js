@@ -1,15 +1,8 @@
 function previewImage(event) {
-    const file = event.target.files[0];
-    const preview = document.getElementById('preview-image');
-
     const reader = new FileReader();
-    reader.onload = function(event) {
-        preview.src = event.target.result;
+    reader.onload = function () {
+        const output = document.getElementById('preview-image');
+        output.src = reader.result;
     };
-
-    if (file) {
-        reader.readAsDataURL(file);
-    } else {
-        preview.src = "#";
-    }
+    reader.readAsDataURL(event.target.files[0]);
 }

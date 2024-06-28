@@ -4,10 +4,11 @@ const axios = require('axios');
 const FormData = require('form-data');
 const multer = require('multer');
 const path = require('path');
+const uploadDir = path.join(__dirname, '../../../../ServWeb_JS/frontend/assets/images/TopicsImg');
 // Multer configuration
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'ServWeb_JS/frontend/assets/images');
+        cb(null, uploadDir);
     },
     filename: function (req, file, cb) {
         cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
@@ -15,11 +16,6 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage });
-// Route to handle image upload
-router.post('/uploadImage', upload.single('image'), (req, res) => {
-    // Handle successful upload (if needed)
-    res.json({ imagePath: `/static/images/${req.file.filename}` });
-});
 
 router.get('/', (req, res) => {
     res.redirect('/home');
@@ -47,40 +43,40 @@ router.get('/createTopic', (req, res) => {
 });
 
 
-router.post('/createTopic', async (req, res) => {
+router.post('/createTopic', upload.single('image'), async (req, res) => {
     const token = req.cookies.token;
     const logged = token !== undefined;
-
     if (!logged) {
         return res.redirect('/login');
     }
 
+    const userIDByToken = 'http://localhost:8080/api/getUserIDByToken';
+    let userID;
+    try {
+        const response = await axios.get(`${userIDByToken}/${token}`);
+        userID = response.data.UserID;
+    } catch (e) {
+        console.log(e.message);
+        return res.status(500).send('Error fetching user ID');
+    }
+
     const { title, description, categories } = req.body;
+    const imagePath = req.file ? `/static/images/TopicsImg/${req.file.filename}` : null;
 
     try {
-        // Upload image first
-        const uploadImageUrl = "http://localhost:3000/uploadImage"; // Assuming your server endpoint for image upload
+        const createTopicUrl = "http://localhost:8080/api/createTopic";
+        const response = await axios.post(createTopicUrl, {
+            title,
+            description,
+            categories,
+            imagePath,
+            userID
+        });
 
-        const uploadResponse = await axios.post(uploadImageUrl, req.file);
-
-        const imagePath = uploadResponse.data.imagePath;
-console.log(imagePath)
-        // Then create topic using the retrieved imagePath
-        // const createTopicUrl = "http://localhost:8080/api/createTopic";
-        //
-        // const response = await axios.post(createTopicUrl, {
-        //     title,
-        //     description,
-        //     categories,
-        //     imagePath
-        // });
-        //
-        // const topicID = response.data.topic_id;
-        // // Redirect to the created topic page or handle success accordingly
-        // res.redirect(`/topic/${topicID}`);
+         const topicID = response.data.topic_id;
+         res.redirect(`/topic/${topicID}`);
     } catch (err) {
         console.error(err);
-        // Handle error response
         res.status(500).send('Error creating topic');
     }
 });
@@ -196,12 +192,11 @@ router.get('/logout', async (req, res) => {
     } else {
         try {
             // Send DELETE request to backend to delete token
-            const response = await axios.delete(deleteTokenUrl, {
+            await axios.delete(deleteTokenUrl, {
                 headers: {
                     // Add any necessary headers (e.g., authorization headers)
                 }
             });
-
             console.log('Token deleted successfully from backend');
         } catch (e) {
             console.error('Error deleting token:', e);

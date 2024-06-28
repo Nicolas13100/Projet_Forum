@@ -33,9 +33,9 @@ VALUES ('Banned user filmlover123 for violating forum rules.'),
        ('Moderated inappropriate content in topic Latest Releases.');
 
 -- Insert Images Data
-INSERT INTO images_Table (image_origin_name, image_serv_name, topic_id,image_link)
-VALUES ('movie_poster.jpg', 'movie_poster_1.jpg', 2,'/asstes/images/movie_poster_1.jpg'),
-       ('cinema_snapshot.png', 'cinema_snapshot_1.png', 3,'/asstes/images/cinema_snapshot_1.png');
+INSERT INTO images_Table (topic_id,image_link)
+VALUES (2,'/static/images/TopicsImg/movie_poster_1.jpg'),
+       (3,'/static/images/TopicsImg/cinema_snapshot_1.png');
 
 -- Insert Have Data
 INSERT INTO have (topic_id, tag_id)

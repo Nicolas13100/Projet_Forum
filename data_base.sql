@@ -71,13 +71,10 @@ CREATE TABLE Admin_Logs_Table
 CREATE TABLE images_Table
 (
     image_id          INT AUTO_INCREMENT,
-    image_origin_name VARCHAR(1000) NOT NULL,
-    image_serv_name   VARCHAR(1000) NOT NULL,
     image_link        VARCHAR(1000) NOT NULL DEFAULT '/assets/img/default-user.png',
     message_id        INT,
     topic_id          INT,
     PRIMARY KEY (image_id),
-    UNIQUE (image_serv_name),
     UNIQUE (image_link),
     FOREIGN KEY (message_id) REFERENCES Messages_Table (message_id) ON DELETE CASCADE,
     FOREIGN KEY (topic_id) REFERENCES Topics_Table (topic_id) ON DELETE CASCADE
