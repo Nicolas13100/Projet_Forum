@@ -24,6 +24,7 @@ func RUN() {
 	r.HandleFunc("/api/getFollowers/{id}", API.GetUsersFollowers).Methods("GET")
 	r.HandleFunc("/api/getUserIDByToken/{token}", API.GetUserIdByToken).Methods("GET")
 	r.HandleFunc("/api/logout/{token}", API.DeleteToken).Methods("DELETE")
+	r.HandleFunc("/api/getTopicImg/{id}", API.GetTopicImg).Methods("GET")
 
 	// Admin
 	r.HandleFunc("/api/modifyTopic", API.ModifyTopicHandler).Methods("POST")

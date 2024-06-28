@@ -86,6 +86,7 @@ router.get('/home', async (req, res) => {
     const TagUrl = 'http://localhost:8080/api/getTopicTag';
     const ownerUrl = 'http://localhost:8080/api/getTopicOwner';
     const likeUrl = 'http://localhost:8080/api/getLikeTopicNumber';
+    const topicImgUrl = 'http://localhost:8080/api/getTopicImg'
     const randomUserUrl = 'http://localhost:8080/api/getRandomUser';
     const followUrl = 'http://localhost:8080/api/getFollowers';
     const userIDByToken = 'http://localhost:8080/api/getUserIDByToken';
@@ -101,6 +102,7 @@ router.get('/home', async (req, res) => {
         const tagPromises = [];
         const ownerPromises = [];
         const numberOfLikePromises =[];
+        const topicImgPromises =[];
 
         // Iterate through topics and create promises for fetching tag and owner data
         for (const topic of response.data.resp.topics) {
@@ -110,17 +112,20 @@ router.get('/home', async (req, res) => {
             const fetchTagPromise = axios.get(`${TagUrl}/${topic_id}`);
             const fetchOwnerPromise = axios.get(`${ownerUrl}/${topic_id}`);
             const fetchNumberOfLikePromise = axios.get(`${likeUrl}/${topic_id}`);
+            const fetchTopicImgPromise=axios.get(`${topicImgUrl}/${topic_id}`)
 
             // Store the promises
             tagPromises.push(fetchTagPromise);
             ownerPromises.push(fetchOwnerPromise);
             numberOfLikePromises.push(fetchNumberOfLikePromise);
+            topicImgPromises.push(fetchTopicImgPromise)
         }
 
         // Wait for all tag and owner data requests to resolve
         const tagResponses = await Promise.all(tagPromises);
         const ownerResponses = await Promise.all(ownerPromises);
         const numberOfLikeResponses = await Promise.all(numberOfLikePromises)
+        const topicImgResponses=await Promise.all(topicImgPromises)
 
         // Merge tag and owner data into respective topics
         tagResponses.forEach((tagResponse, index) => {
@@ -133,6 +138,10 @@ router.get('/home', async (req, res) => {
 
         numberOfLikeResponses.forEach((likeResponse, index) => {
            response.data.resp.topics[index].numberOfLike = likeResponse.data.NumberOfLike.like_count;
+        })
+
+        topicImgResponses.forEach((imgResponse, index) => {
+            response.data.resp.topics[index].imgPath = imgResponse.data.ImagePath;
         })
 
     } catch (error) {
@@ -167,7 +176,6 @@ if (logged){
         console.log(e.data);
     }
 }
-
     const data = {
         topics: response.data.resp.topics,
         logged: logged,

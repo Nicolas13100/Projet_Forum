@@ -619,3 +619,57 @@ func GetLikeNumberOfTopic(w http.ResponseWriter, r *http.Request) {
 		NumberOfLike: map[string]int{"like_count": likeCount},
 	})
 }
+
+func GetTopicImg(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		response := APIResponse{Status: http.StatusMethodNotAllowed, Message: "Method not allowed"}
+		sendResponse(w, response)
+		return
+	}
+
+	// Extract topicId from URL parameter
+	vars := mux.Vars(r)
+	topicIdStr := vars["id"]
+
+	topicId, err := strconv.Atoi(topicIdStr)
+	if err != nil || topicId < 1 {
+		log.Println("Invalid topic ID:", topicIdStr)
+		response := APIResponse{Status: http.StatusBadRequest, Message: "Invalid topic ID"}
+		sendResponse(w, response)
+		return
+	}
+
+	rows, err := db.Query("SELECT image_link FROM images_table WHERE topic_id = ?;", topicId)
+	if err != nil {
+		log.Println("Error querying database:", err)
+		response := APIResponse{Status: http.StatusInternalServerError, Message: "Internal Server Error"}
+		sendResponse(w, response)
+		return
+	}
+	defer func() {
+		if err := rows.Close(); err != nil {
+			log.Println("Error closing rows:", err)
+		}
+	}()
+
+	var imagePath string
+
+	// Assuming only one row is expected, use rows.Next() to iterate over results
+	if rows.Next() {
+		err := rows.Scan(&imagePath)
+		if err != nil {
+			log.Println("Error scanning image_link:", err)
+			response := APIResponse{Status: http.StatusInternalServerError, Message: "Internal Server Error"}
+			sendResponse(w, response)
+			return
+		}
+	} else {
+		response := APIResponse{Status: http.StatusOK, ImagePath: "none"}
+		sendResponse(w, response)
+		return
+	}
+
+	// Prepare response with image path
+	response := APIResponse{Status: http.StatusOK, ImagePath: imagePath}
+	sendResponse(w, response)
+}
