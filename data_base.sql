@@ -29,6 +29,14 @@ CREATE TABLE Topics_Table
     FOREIGN KEY (user_id) REFERENCES users_table (user_id)
 ) ENGINE = INNODB;
 
+CREATE TABLE Tags_Table
+(
+    tag_id   INT AUTO_INCREMENT,
+    tag_name VARCHAR(50) NOT NULL,
+    PRIMARY KEY (tag_id),
+    UNIQUE (tag_name)
+) ENGINE = INNODB;
+
 CREATE TABLE TopicTags
 (
     topic_id INT,
@@ -37,14 +45,6 @@ CREATE TABLE TopicTags
     FOREIGN KEY (topic_id) REFERENCES Topics_Table (topic_id),
     FOREIGN KEY (tag_id) REFERENCES Tags_Table (tag_id)
 ) ENGINE = InnoDB;
-
-CREATE TABLE Tags_Table
-(
-    tag_id   INT AUTO_INCREMENT,
-    tag_name VARCHAR(50) NOT NULL,
-    PRIMARY KEY (tag_id),
-    UNIQUE (tag_name)
-) ENGINE = INNODB;
 
 CREATE TABLE Messages_Table
 (
