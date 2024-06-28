@@ -483,3 +483,86 @@ func GetTopicTagsNamesByTopicId(w http.ResponseWriter, r *http.Request) {
 	response := APIResponse{Status: http.StatusOK, Data: tagInfos}
 	sendResponse(w, response)
 }
+
+func GetTopicOwner(w http.ResponseWriter, r *http.Request) {
+	// Check method
+	if r.Method != http.MethodGet {
+		sendResponse(w, APIResponse{Status: http.StatusMethodNotAllowed, Message: "Method not allowed"})
+		return
+	}
+
+	// Extract topic_id from URL parameter
+	vars := mux.Vars(r)
+	topicID := vars["id"]
+
+	// Validate topic_id
+	if topicID == "" {
+		sendResponse(w, APIResponse{Status: http.StatusBadRequest, Message: "Invalid topic ID"})
+		return
+	}
+
+	// Query the database for user_id and username with the given topic_id
+	var userID, username, profilePic string
+	err := db.QueryRow(`
+        SELECT t.user_id, u.username, u.profile_pic
+        FROM topics_table t
+        JOIN users_table u ON t.user_id = u.user_id
+        WHERE t.topic_id = ?`, topicID).Scan(&userID, &username, &profilePic)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			sendResponse(w, APIResponse{Status: http.StatusNotFound, Message: "Topic or user not found"})
+		} else {
+			log.Printf("Error querying database: %v", err)
+			sendResponse(w, APIResponse{Status: http.StatusInternalServerError, Message: "Internal Server Error"})
+		}
+		return
+	}
+
+	// Send the user ID and username as JSON response
+	sendResponse(w, APIResponse{
+		Status:   http.StatusOK,
+		Message:  "Success",
+		UserData: map[string]string{"user_id": userID, "username": username, "profile_pic": profilePic},
+	})
+}
+
+func GetLikeNumberOfTopic(w http.ResponseWriter, r *http.Request) {
+	// Check method
+	if r.Method != http.MethodGet {
+		sendResponse(w, APIResponse{Status: http.StatusMethodNotAllowed, Message: "Method not allowed"})
+		return
+	}
+
+	// Extract topic_id from URL parameter
+	vars := mux.Vars(r)
+	topicID := vars["id"]
+
+	// Validate topic_id
+	if topicID == "" {
+		sendResponse(w, APIResponse{Status: http.StatusBadRequest, Message: "Invalid topic ID"})
+		return
+	}
+
+	// Query the database for the count of likes where status is 1 for the given topic_id
+	var likeCount int
+	err := db.QueryRow(`
+        SELECT COUNT(*)
+        FROM react_topic
+        WHERE topic_id = ? AND status = 1`, topicID).Scan(&likeCount)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			sendResponse(w, APIResponse{Status: http.StatusNotFound, Message: "Topic not found"})
+		} else {
+			log.Printf("Error querying database: %v", err)
+			sendResponse(w, APIResponse{Status: http.StatusInternalServerError, Message: "Internal Server Error"})
+		}
+		return
+	}
+
+	// Send the count as JSON response
+	sendResponse(w, APIResponse{
+		Status:       http.StatusOK,
+		Message:      "Success",
+		NumberOfLike: map[string]int{"like_count": likeCount},
+	})
+}
