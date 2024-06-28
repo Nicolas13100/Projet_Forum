@@ -13,11 +13,6 @@
     
   </head>
   <body>
-  <% if (message) { %>
-    <div class="error">
-      <%= message %>
-    </div>
-  <% } %>
     <div class="container">
       <div class="forms-container">
 
@@ -50,7 +45,13 @@
                 <i class="fab fa-linkedin-in"></i>
               </a>
             </div>
+            <% if (messageLogin) { %>
+              <div class="error">
+                <%= messageLogin %>
+              </div>
+            <% } %>
           </form>
+
 
 
 <!-- ---- -->
@@ -86,6 +87,11 @@
                 <i class="fab fa-linkedin-in"></i>
               </a>
             </div>
+            <% if (messageRegister) { %>
+              <div class="error">
+                <%= messageRegister %>
+              </div>
+            <% } %>
           </form>
         </div>
       </div>

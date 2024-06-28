@@ -1,5 +1,5 @@
 const path = require('path');
-require('dotenv').config({ path: path.resolve(__dirname, '.env') });
+require('dotenv').config({path: path.resolve(__dirname, '.env')});
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
@@ -13,7 +13,7 @@ app.use(cors());
 app.use('/static', express.static(path.resolve(__dirname, '../frontEnd/assets')));
 app.set('view engine', 'ejs');
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({extended: true}));
 
 const viewsDirectories = [
     path.resolve(__dirname, '../frontend/templates'),
@@ -27,4 +27,5 @@ app.use('/', displayRoutes);
 const port = process.env.PORT || 3300;
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
+    console.log(`open http://localhost:${port}/home`)
 });

@@ -1,11 +1,11 @@
 -- Insert Users Data
 INSERT INTO users_table (username, email, password, biography, isAdmin, isModerator, profile_pic)
 VALUES ('filmlover123', 'filmlover123@example.com', 'password123', 'Passionate about movies!', 0, 0,
-        'profile_pic1.jpg'),
+        '/static/images/userAvatar/default-user.png'),
        ('cinemafanatic', 'cinemafanatic@example.com', 'securepassword', 'Obsessed with all things cinema.', 0, 0,
-        'profile_pic2.jpg'),
+        '/static/images/userAvatar/default-user.png'),
        ('moviebuff456', 'moviebuff456@example.com', 'moviesarelife', 'Movie enthusiast exploring new genres.', 0, 0,
-        'profile_pic3.jpg');
+        '/static/images/userAvatar/default-user.png');
 
 -- Insert Topics Data
 INSERT INTO Topics_Table (title, body, status, is_private, user_id)

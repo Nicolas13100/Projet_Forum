@@ -10,7 +10,7 @@ CREATE TABLE users_table
     isAdmin           TINYINT(1)   NOT NULL DEFAULT 0 CHECK (isAdmin IN (0, 1)),
     isModerator       TINYINT(1)   NOT NULL DEFAULT 0 CHECK (isModerator IN (0, 1)),
     is_deleted        TINYINT(1)   NOT NULL DEFAULT 0 CHECK (is_deleted IN (0, 1)),
-    profile_pic       VARCHAR(100) NOT NULL DEFAULT '/static/images/userAvatar/default.png',
+    profile_pic       VARCHAR(100) NOT NULL DEFAULT '/static/images/userAvatar/default-user.png',
     PRIMARY KEY (user_id),
     UNIQUE (username),
     UNIQUE (email)
@@ -73,7 +73,7 @@ CREATE TABLE images_Table
     image_id          INT AUTO_INCREMENT,
     image_origin_name VARCHAR(1000) NOT NULL,
     image_serv_name   VARCHAR(1000) NOT NULL,
-    image_link        VARCHAR(1000) NOT NULL DEFAULT '/assets/img/default.png',
+    image_link        VARCHAR(1000) NOT NULL DEFAULT '/assets/img/default-user.png',
     message_id        INT,
     topic_id          INT,
     PRIMARY KEY (image_id),

@@ -22,7 +22,19 @@ router.post('/uploadImage', upload.single('image'), (req, res) => {
 });
 
 router.get('/', (req, res) => {
-    res.render('home', { title: 'Home' });
+    res.redirect('/home');
+});
+
+router.get('/meUser', (req, res) => {
+    const token = req.cookies.token;
+    const logged = token !== undefined;
+
+    if (!logged) {
+        return res.redirect('/login');
+    }
+
+
+    res.render('category', { title: 'Category' });
 });
 
 router.get('/category', (req, res) => {
@@ -33,7 +45,6 @@ router.get('/createTopic', (req, res) => {
 
     res.render('createTopic', { title: 'CreateTopic' });
 });
-
 
 
 router.post('/createTopic', async (req, res) => {
@@ -172,7 +183,7 @@ if (logged){
 });
 
 router.get('/login', (req, res) => {
-    res.render('login', { message: null });
+    res.render('login', { messageLogin: null, messageRegister : null });
 });
 
 router.get('/logout', async (req, res) => {
@@ -232,11 +243,11 @@ router.post('/loginUser', async (req, res) => {
     } catch (error) {
         if (error.response) {
             // The request was made and the server responded with a status code that falls out of the range of 2xx
-            console.error('Error response data:', error.response.data);
-            console.error('Error response status:', error.response.status);
-            console.error('Error response headers:', error.response.headers);
+            // console.error('Error response data:', error.response.data);
+            // console.error('Error response status:', error.response.status);
+            // console.error('Error response headers:', error.response.headers);
             if (error.response.data){
-                res.render('login', { message: error.response.data.message});
+                res.render('login', { messageLogin: error.response.data.message, messageRegister:null});
             }else {
                 res.status(error.response.status).send(error.response.data);
             }
@@ -260,7 +271,6 @@ router.post('/register', async (req, res) => {
     data.append('username', username);
     data.append('password', password);
     data.append('mail', mail);
-    console.log(username, password, mail);
 
     try {
         await axios.post(url, data, {
@@ -269,16 +279,16 @@ router.post('/register', async (req, res) => {
             }
         });
 
-        res.redirect('/home');
+        res.redirect('/login');
 
     } catch (error) {
         if (error.response) {
             // The request was made and the server responded with a status code that falls out of the range of 2xx
-            console.error('Error response data:', error.response.data);
-            console.error('Error response status:', error.response.status);
-            console.error('Error response headers:', error.response.headers);
+            // console.error('Error response data:', error.response.data);
+            // console.error('Error response status:', error.response.status);
+            // console.error('Error response headers:', error.response.headers);
             if (error.response.data){
-                res.render('login', { message: error.response.data.message});
+                res.render('login', { messageRegister: error.response.data.message , messageLogin : null});
             }else {
                 res.status(error.response.status).send(error.response.data);
             }
