@@ -12,11 +12,18 @@ func RUN() {
 	r := mux.NewRouter()
 
 	// Setting up HTTP routes for different endpoints
-	r.HandleFunc("/api/getHome", API.GetAllTopic).Methods("GET")
+	r.HandleFunc("/api/getHome/{page}/{pageSize}", API.GetAllTopic).Methods("GET")
+	r.HandleFunc("/api/getTopicTag/{id}", API.GetTopicTagsNamesByTopicId).Methods("GET")
 	r.HandleFunc("/api/getTopic/{id}", API.GetTopic).Methods("GET")
 	r.HandleFunc("/api/getUser/{id}", API.GetUser).Methods("GET")
 	r.HandleFunc("/api/getAllTopicMessage/{id}", API.GetAllTopicMessage).Methods("GET")
 	r.HandleFunc("/api/getAllMessageAnswer/{id}", API.GetAllMessageAnswer).Methods("GET")
+	r.HandleFunc("/api/getTopicOwner/{id}", API.GetTopicOwner).Methods("GET")
+	r.HandleFunc("/api/getLikeTopicNumber/{id}", API.GetLikeNumberOfTopic).Methods("GET")
+	r.HandleFunc("/api/getRandomUser", API.GetForYouUser).Methods("GET")
+	r.HandleFunc("/api/getFollowers/{id}", API.GetUsersFollowers).Methods("GET")
+	r.HandleFunc("/api/getUserIDByToken/{token}", API.GetUserIdByToken).Methods("GET")
+	r.HandleFunc("/api/logout/{token}", API.DeleteToken).Methods("DELETE")
 
 	// Admin
 	r.HandleFunc("/api/modifyTopic", API.ModifyTopicHandler).Methods("POST")

@@ -113,3 +113,60 @@ func searchMessages(query string) ([]Message, error) {
 
 	return messages, nil
 }
+
+func GetForYouUser(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		sendResponse(w, APIResponse{Status: http.StatusMethodNotAllowed, Message: "Method not allowed"})
+		return
+	}
+
+	// Adjust your SQL query to select 3 random users with user_id, username, and profile_pic
+	rows, err := db.Query(`
+        SELECT user_id, username, profile_pic
+        FROM users_table
+        ORDER BY RAND()
+        LIMIT 3
+    `)
+	if err != nil {
+		log.Printf("Error querying database: %v", err)
+		sendResponse(w, APIResponse{Status: http.StatusInternalServerError, Message: "Internal Server Error"})
+		return
+	}
+	defer rows.Close()
+
+	// Prepare a slice to hold the results
+	var users []User // Assuming User is a struct containing user_id, username, and profile_pic
+
+	// Iterate through the rows and populate the users slice
+	for rows.Next() {
+		var user User
+		// Scan the row into the User struct fields
+		if err := rows.Scan(&user.UserID, &user.Username, &user.ProfilePic); err != nil {
+			log.Printf("Error scanning row: %v", err)
+			sendResponse(w, APIResponse{Status: http.StatusInternalServerError, Message: "Internal Server Error"})
+			return
+		}
+		// Append each user to the slice
+		users = append(users, user)
+	}
+
+	// Check for errors during rows iteration
+	if err := rows.Err(); err != nil {
+		log.Printf("Error iterating rows: %v", err)
+		sendResponse(w, APIResponse{Status: http.StatusInternalServerError, Message: "Internal Server Error"})
+		return
+	}
+
+	// If no users were found (though this case is unlikely with LIMIT 3)
+	if len(users) == 0 {
+		sendResponse(w, APIResponse{Status: http.StatusNotFound, Message: "No users found"})
+		return
+	}
+
+	// Send the users slice as JSON response
+	sendResponse(w, APIResponse{
+		Status:    http.StatusOK,
+		Message:   "Success",
+		UsersData: users,
+	})
+}

@@ -39,10 +39,18 @@ type Response struct {
 
 // APIResponse represents the structure of the API response
 type APIResponse struct {
-	Status   int    `json:"status"`
-	Message  string `json:"message"`
-	Token    string `json:"token,omitempty"`
-	JsonResp []byte `json:"json_resp,omitempty"`
+	Status       int                    `json:"status"`
+	Message      string                 `json:"message"`
+	Token        string                 `json:"token,omitempty"`
+	Resp         map[string]interface{} `json:"resp,omitempty"`
+	JsonResp     []byte                 `json:"json_resp,omitempty"`
+	Data         []TagInfo              `json:"data,omitempty"`
+	UserData     map[string]string      `json:"UserData,omitempty"`
+	NumberOfLike map[string]int         `json:"NumberOfLike,omitempty"`
+	UsersData    []User                 `json:"UsersData,omitempty"`
+	FollowerData map[string]int         `json:"FollowerData,omitempty"`
+	UserID       int                    `json:"UserID,omitempty"`
+	User         User                   `json:"user,omitempty"`
 }
 
 type Topic struct {
@@ -68,4 +76,9 @@ type Message struct {
 type SearchResults struct {
 	Topics   []Topic   `json:"topics"`
 	Messages []Message `json:"messages"`
+}
+
+type TagInfo struct {
+	TagID   int    `json:"tag_id"`
+	TagName string `json:"tag_name"`
 }

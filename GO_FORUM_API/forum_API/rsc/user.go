@@ -2,7 +2,6 @@ package API
 
 import (
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -46,15 +45,8 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Convert user struct to JSON
-	userJSON, err := json.Marshal(user)
-	if err != nil {
-		log.Println("Error marshaling user to JSON:", err)
-		http.Error(w, "Failed to marshal JSON", http.StatusInternalServerError)
-		return
-	}
-
-	response := APIResponse{Status: http.StatusOK, Message: "Success", JsonResp: userJSON}
+	// Successful response
+	response := APIResponse{Status: http.StatusOK, Message: "Success", User: user}
 	sendResponse(w, response)
 }
 
@@ -78,4 +70,40 @@ func createUser(username, email, password, biography, profilePic string) error {
 		return err
 	}
 	return nil
+}
+
+func GetUsersFollowers(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		sendResponse(w, APIResponse{Status: http.StatusMethodNotAllowed, Message: "Method not allowed"})
+		return
+	}
+
+	// Extract user_id from URL parameter
+	vars := mux.Vars(r)
+	userID := vars["id"]
+	if userID == "" {
+		sendResponse(w, APIResponse{Status: http.StatusBadRequest, Message: "Missing user_id parameter"})
+		return
+	}
+
+	// Adjust your SQL query to select count of followers
+	var followerCount int
+	err := db.QueryRow(`
+        SELECT COUNT(*)
+        FROM follow
+        WHERE user_id = ?
+    `, userID).Scan(&followerCount)
+	if err != nil {
+		log.Printf("Error querying database: %v", err)
+		sendResponse(w, APIResponse{Status: http.StatusInternalServerError, Message: "Internal Server Error"})
+		return
+	}
+
+	// Prepare response with the follower count
+	response := APIResponse{
+		Status:       http.StatusOK,
+		Message:      "Success",
+		FollowerData: map[string]int{"follower_count": followerCount},
+	}
+	sendResponse(w, response)
 }
