@@ -72,4 +72,4 @@ VALUES (1, 2, NOW()),
        (2, 3, NOW()),
        (3, 1, NOW());
 
-INSERT INTO TopicTags (topic_id, tag_id) VALUES (1, 1),(1,2);
+INSERT INTO TopicTags (topic_id, tag_id) VALUES (1, 1),(1,2),(2, 1),(2,2),(3, 1),(3,2),(3, 4),(1,5);

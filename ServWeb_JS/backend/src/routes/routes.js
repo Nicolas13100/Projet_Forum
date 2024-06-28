@@ -150,21 +150,21 @@ router.get('/home', async (req, res) => {
     }catch(e){
         console.log(e);
     }
-    let userData
+    let user
 if (logged){
     try{
         const userID = await axios.get(`${userIDByToken}/${token}`, {});
-        userData = await axios.get(`${userDataUrl}/${userID.data.UserID}`, {});
+        const userData = await axios.get(`${userDataUrl}/${userID.data.UserID}`, {});
+        user = userData.data.user
     }catch(e){
         console.log(e.data);
     }
 }
 
-
     const data = {
         topics: response.data.resp.topics,
         logged: logged,
-        user: userData.data.user,
+        user: user,
         forYou : forYou.data.UsersData
     };
 
