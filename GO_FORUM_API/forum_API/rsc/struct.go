@@ -51,6 +51,7 @@ type APIResponse struct {
 	FollowerData map[string]int         `json:"FollowerData,omitempty"`
 	UserID       int                    `json:"UserID,omitempty"`
 	User         User                   `json:"user,omitempty"`
+	ImagePath    string                 `json:"ImagePath,omitempty"`
 }
 
 type Topic struct {

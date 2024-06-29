@@ -10,7 +10,7 @@ CREATE TABLE users_table
     isAdmin           TINYINT(1)   NOT NULL DEFAULT 0 CHECK (isAdmin IN (0, 1)),
     isModerator       TINYINT(1)   NOT NULL DEFAULT 0 CHECK (isModerator IN (0, 1)),
     is_deleted        TINYINT(1)   NOT NULL DEFAULT 0 CHECK (is_deleted IN (0, 1)),
-    profile_pic       VARCHAR(100) NOT NULL DEFAULT '/static/images/userAvatar/default.png',
+    profile_pic       VARCHAR(100) NOT NULL DEFAULT '/static/images/userAvatar/default-user.png',
     PRIMARY KEY (user_id),
     UNIQUE (username),
     UNIQUE (email)
@@ -29,6 +29,14 @@ CREATE TABLE Topics_Table
     FOREIGN KEY (user_id) REFERENCES users_table (user_id)
 ) ENGINE = INNODB;
 
+CREATE TABLE Tags_Table
+(
+    tag_id   INT AUTO_INCREMENT,
+    tag_name VARCHAR(50) NOT NULL,
+    PRIMARY KEY (tag_id),
+    UNIQUE (tag_name)
+) ENGINE = INNODB;
+
 CREATE TABLE TopicTags
 (
     topic_id INT,
@@ -37,14 +45,6 @@ CREATE TABLE TopicTags
     FOREIGN KEY (topic_id) REFERENCES Topics_Table (topic_id),
     FOREIGN KEY (tag_id) REFERENCES Tags_Table (tag_id)
 ) ENGINE = InnoDB;
-
-CREATE TABLE Tags_Table
-(
-    tag_id   INT AUTO_INCREMENT,
-    tag_name VARCHAR(50) NOT NULL,
-    PRIMARY KEY (tag_id),
-    UNIQUE (tag_name)
-) ENGINE = INNODB;
 
 CREATE TABLE Messages_Table
 (
@@ -71,13 +71,10 @@ CREATE TABLE Admin_Logs_Table
 CREATE TABLE images_Table
 (
     image_id          INT AUTO_INCREMENT,
-    image_origin_name VARCHAR(1000) NOT NULL,
-    image_serv_name   VARCHAR(1000) NOT NULL,
-    image_link        VARCHAR(1000) NOT NULL DEFAULT '/assets/img/default.png',
+    image_link        VARCHAR(1000) NOT NULL DEFAULT '/assets/img/default-user.png',
     message_id        INT,
     topic_id          INT,
     PRIMARY KEY (image_id),
-    UNIQUE (image_serv_name),
     UNIQUE (image_link),
     FOREIGN KEY (message_id) REFERENCES Messages_Table (message_id) ON DELETE CASCADE,
     FOREIGN KEY (topic_id) REFERENCES Topics_Table (topic_id) ON DELETE CASCADE

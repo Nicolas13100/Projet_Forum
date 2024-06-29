@@ -2,9 +2,35 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 const FormData = require('form-data');
+const multer = require('multer');
+const path = require('path');
+const uploadDir = path.join(__dirname, '../../../../ServWeb_JS/frontend/assets/images/TopicsImg');
+// Multer configuration
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, uploadDir);
+    },
+    filename: function (req, file, cb) {
+        cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({ storage: storage });
 
 router.get('/', (req, res) => {
-    res.render('home', { title: 'Home' });
+    res.redirect('/home');
+});
+
+router.get('/meUser', (req, res) => {
+    const token = req.cookies.token;
+    const logged = token !== undefined;
+
+    if (!logged) {
+        return res.redirect('/login');
+    }
+
+
+    res.render('category', { title: 'Category' });
 });
 
 router.get('/category', (req, res) => {
@@ -12,7 +38,47 @@ router.get('/category', (req, res) => {
 });
 
 router.get('/createTopic', (req, res) => {
+
     res.render('createTopic', { title: 'CreateTopic' });
+});
+
+
+router.post('/createTopic', upload.single('image'), async (req, res) => {
+    const token = req.cookies.token;
+    const logged = token !== undefined;
+    if (!logged) {
+        return res.redirect('/login');
+    }
+
+    const userIDByToken = 'http://localhost:8080/api/getUserIDByToken';
+    let userID;
+    try {
+        const response = await axios.get(`${userIDByToken}/${token}`);
+        userID = response.data.UserID;
+    } catch (e) {
+        console.log(e.message);
+        return res.status(500).send('Error fetching user ID');
+    }
+
+    const { title, description, categories } = req.body;
+    const imagePath = req.file ? `/static/images/TopicsImg/${req.file.filename}` : null;
+
+    try {
+        const createTopicUrl = "http://localhost:8080/api/createTopic";
+        const response = await axios.post(createTopicUrl, {
+            title,
+            description,
+            categories,
+            imagePath,
+            userID
+        });
+
+         const topicID = response.data.topic_id;
+         res.redirect(`/topic/${topicID}`);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Error creating topic');
+    }
 });
 
 router.get('/home', async (req, res) => {
@@ -20,6 +86,7 @@ router.get('/home', async (req, res) => {
     const TagUrl = 'http://localhost:8080/api/getTopicTag';
     const ownerUrl = 'http://localhost:8080/api/getTopicOwner';
     const likeUrl = 'http://localhost:8080/api/getLikeTopicNumber';
+    const topicImgUrl = 'http://localhost:8080/api/getTopicImg'
     const randomUserUrl = 'http://localhost:8080/api/getRandomUser';
     const followUrl = 'http://localhost:8080/api/getFollowers';
     const userIDByToken = 'http://localhost:8080/api/getUserIDByToken';
@@ -35,6 +102,7 @@ router.get('/home', async (req, res) => {
         const tagPromises = [];
         const ownerPromises = [];
         const numberOfLikePromises =[];
+        const topicImgPromises =[];
 
         // Iterate through topics and create promises for fetching tag and owner data
         for (const topic of response.data.resp.topics) {
@@ -44,17 +112,20 @@ router.get('/home', async (req, res) => {
             const fetchTagPromise = axios.get(`${TagUrl}/${topic_id}`);
             const fetchOwnerPromise = axios.get(`${ownerUrl}/${topic_id}`);
             const fetchNumberOfLikePromise = axios.get(`${likeUrl}/${topic_id}`);
+            const fetchTopicImgPromise=axios.get(`${topicImgUrl}/${topic_id}`)
 
             // Store the promises
             tagPromises.push(fetchTagPromise);
             ownerPromises.push(fetchOwnerPromise);
             numberOfLikePromises.push(fetchNumberOfLikePromise);
+            topicImgPromises.push(fetchTopicImgPromise)
         }
 
         // Wait for all tag and owner data requests to resolve
         const tagResponses = await Promise.all(tagPromises);
         const ownerResponses = await Promise.all(ownerPromises);
         const numberOfLikeResponses = await Promise.all(numberOfLikePromises)
+        const topicImgResponses=await Promise.all(topicImgPromises)
 
         // Merge tag and owner data into respective topics
         tagResponses.forEach((tagResponse, index) => {
@@ -67,6 +138,10 @@ router.get('/home', async (req, res) => {
 
         numberOfLikeResponses.forEach((likeResponse, index) => {
            response.data.resp.topics[index].numberOfLike = likeResponse.data.NumberOfLike.like_count;
+        })
+
+        topicImgResponses.forEach((imgResponse, index) => {
+            response.data.resp.topics[index].imgPath = imgResponse.data.ImagePath;
         })
 
     } catch (error) {
@@ -91,21 +166,20 @@ router.get('/home', async (req, res) => {
     }catch(e){
         console.log(e);
     }
-    let userData
+    let user
 if (logged){
     try{
         const userID = await axios.get(`${userIDByToken}/${token}`, {});
-        userData = await axios.get(`${userDataUrl}/${userID.data.UserID}`, {});
+        const userData = await axios.get(`${userDataUrl}/${userID.data.UserID}`, {});
+        user = userData.data.user
     }catch(e){
         console.log(e.data);
     }
 }
-
-
     const data = {
         topics: response.data.resp.topics,
         logged: logged,
-        user: userData.data.user,
+        user: user,
         forYou : forYou.data.UsersData
     };
 
@@ -113,7 +187,7 @@ if (logged){
 });
 
 router.get('/login', (req, res) => {
-    res.render('login', { message: null });
+    res.render('login', { messageLogin: null, messageRegister : null });
 });
 
 router.get('/logout', async (req, res) => {
@@ -126,12 +200,11 @@ router.get('/logout', async (req, res) => {
     } else {
         try {
             // Send DELETE request to backend to delete token
-            const response = await axios.delete(deleteTokenUrl, {
+            await axios.delete(deleteTokenUrl, {
                 headers: {
                     // Add any necessary headers (e.g., authorization headers)
                 }
             });
-
             console.log('Token deleted successfully from backend');
         } catch (e) {
             console.error('Error deleting token:', e);
@@ -173,11 +246,11 @@ router.post('/loginUser', async (req, res) => {
     } catch (error) {
         if (error.response) {
             // The request was made and the server responded with a status code that falls out of the range of 2xx
-            console.error('Error response data:', error.response.data);
-            console.error('Error response status:', error.response.status);
-            console.error('Error response headers:', error.response.headers);
+            // console.error('Error response data:', error.response.data);
+            // console.error('Error response status:', error.response.status);
+            // console.error('Error response headers:', error.response.headers);
             if (error.response.data){
-                res.render('login', { message: error.response.data.message});
+                res.render('login', { messageLogin: error.response.data.message, messageRegister:null});
             }else {
                 res.status(error.response.status).send(error.response.data);
             }
@@ -201,7 +274,6 @@ router.post('/register', async (req, res) => {
     data.append('username', username);
     data.append('password', password);
     data.append('mail', mail);
-    console.log(username, password, mail);
 
     try {
         await axios.post(url, data, {
@@ -210,16 +282,16 @@ router.post('/register', async (req, res) => {
             }
         });
 
-        res.redirect('/home');
+        res.redirect('/login');
 
     } catch (error) {
         if (error.response) {
             // The request was made and the server responded with a status code that falls out of the range of 2xx
-            console.error('Error response data:', error.response.data);
-            console.error('Error response status:', error.response.status);
-            console.error('Error response headers:', error.response.headers);
+            // console.error('Error response data:', error.response.data);
+            // console.error('Error response status:', error.response.status);
+            // console.error('Error response headers:', error.response.headers);
             if (error.response.data){
-                res.render('login', { message: error.response.data.message});
+                res.render('login', { messageRegister: error.response.data.message , messageLogin : null});
             }else {
                 res.status(error.response.status).send(error.response.data);
             }

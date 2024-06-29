@@ -5,12 +5,11 @@
   <title>CREATE TOPIC</title>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="shortcut icon" href="../assets/images/télécharger.png" type="image/x-icon" />
-  <link rel="stylesheet" type="text/css" href="../style/createTopic.css" />
-  <link rel="stylesheet" type="text/css" href="../style/style.css" />
-  <script src="../script/script.js" defer></script>
-  <script src="../script/topic.js" defer></script>
- 
+  <link rel="shortcut icon" href="/static/images/télécharger.png" type="image/x-icon" />
+  <link rel="stylesheet" type="text/css" href="/static/style/createTopic.css" />
+  <link rel="stylesheet" type="text/css" href="/static/style/style.css" />
+  <script src="/static/script/script.js" defer></script>
+  <script src="/static/script/topic.js" defer></script>
 </head>
 
 <body class="body">
@@ -18,7 +17,7 @@
     <nav class="header__content">
       <div class="header__buttons">
         <a href="index.html" class="header__home">
-          <img src="../assets/images/télécharger.png" title="Home Page" alt="koko goat" />
+          <img src="/static//images/télécharger.png" title="Home Page" alt="koko goat" />
         </a>
 
         <button class="header__theme-button" title="Toggle Theme">
@@ -107,7 +106,7 @@
           <button class="profile-button" title="My Profil">
             <div class="profile-button__border"></div>
             <div class="profile-button__picture">
-              <img src="../assets/default-user.png" alt="User Picture" />
+              <img src="/static//default-user.png" alt="User Picture" />
             </div>
           </button>
         </a>
@@ -124,64 +123,61 @@
     </h1>
   </div>
   <div class="class-form">
-  <form action="#" method="post" class="form">
-    <div class="form__group">
-      <input class="title" type="text" id="title" name="title" placeholder="Title" required oninput="this.value = this.value.toUpperCase()" />
-    </div>
+      <form action="/createTopic" method="post" enctype="multipart/form-data" class="form">
+          <div class="form__group">
+              <input class="title" type="text" id="title" name="title" placeholder="Title" required oninput="this.value = this.value.toUpperCase()" />
+          </div>
 
-    <div class="form__group">
-      <textarea id="description" name="description" placeholder="Description" required></textarea>
-    </div>
+          <div class="form__group">
+              <textarea id="description" name="description" placeholder="Description" required></textarea>
+          </div>
 
-    <div class="devises">
-      <h1 class="h1_devise">SELECT ONLY 03 TAGS</h1>
-      
-  <div class="devises-container">
-      <div class="devise">
-          <input type="checkbox" id="action" name="category" value="action">
-          <label for="action">ACTION</label>
-      </div>
-      <div class="devise">
-          <input type="checkbox" id="comedy" name="category" value="comedy">
-          <label for="comedy">COMEDY</label>
-      </div>
-      <div class="devise">
-          <input type="checkbox" id="drama" name="category" value="drama">
-          <label for="drama">DRAMA</label>
-      </div>
-      <div class="devise">
-          <input type="checkbox" id="fantasy" name="category" value="fantasy">
-          <label for="fantasy">FANTASY</label>
-      </div>
-      <div class="devise">
-          <input type="checkbox" id="romance" name="category" value="romance">
-          <label for="romance">ROMANCE</label>
-      </div>
-      <div class="devise">
-          <input type="checkbox" id="horreur" name="category" value="horreur">
-          <label for="horreur">HORREUR</label>
-      </div>
-      <div class="devise">
-          <input type="checkbox" id="sci_fi" name="category" value="scienceFiction">
-          <label for="scienceFiction">SCIENCE-FICTION</label>
-      </div>
-      <div class="devise">
-          <input type="checkbox" id="anime" name="devise" value="anime">
-          <label for="anime">ANIME</label>
-      </div>
-  </div>
-</div>
-  
-  
+          <div class="devises">
+              <h1 class="h1_devise">SELECT ONLY 03 TAGS</h1>
+              <div class="devises-container">
+                  <div class="devise">
+                      <input type="checkbox" id="action" name="categories[]" value="Action">
+                      <label for="action">ACTION</label>
+                  </div>
+                  <div class="devise">
+                      <input type="checkbox" id="comedy" name="categories[]" value="Comedy">
+                      <label for="comedy">COMEDY</label>
+                  </div>
+                  <div class="devise">
+                      <input type="checkbox" id="drama" name="categories[]" value="Drama">
+                      <label for="drama">DRAMA</label>
+                  </div>
+                  <div class="devise">
+                      <input type="checkbox" id="fantasy" name="categories[]" value="Fantasy">
+                      <label for="fantasy">FANTASY</label>
+                  </div>
+                  <div class="devise">
+                      <input type="checkbox" id="romance" name="categories[]" value="Romance">
+                      <label for="romance">ROMANCE</label>
+                  </div>
+                  <div class="devise">
+                      <input type="checkbox" id="horreur" name="categories[]" value="Horror">
+                      <label for="horreur">HORREUR</label>
+                  </div>
+                  <div class="devise">
+                      <input type="checkbox" id="sci_fi" name="categories[]" value="Sci-Fi">
+                      <label for="scienceFiction">SCIENCE-FICTION</label>
+                  </div>
+                  <div class="devise">
+                      <input type="checkbox" id="anime" name="categories[]" value="Anime">
+                      <label for="anime">ANIME</label>
+                  </div>
+              </div>
+          </div>
 
-    <div class="form__group">
-      <label for="image" class="custom-file-upload">Ajouter Une Image</label>
-<input type="file" id="image" name="image" accept="image/*" required style="display:none;" />
-<img id="preview-image" src="#" alt="preview" style="display: none; max-width: 80px; max-height:50px;">
-</div>
+          <div class="form__group">
+              <label for="image" class="custom-file-upload">Ajouter Une Image</label>
+              <input type="file" id="image" name="image" accept="image/*" required style="display:none;" onchange="previewImage(event)" />
+              <img id="preview-image" src="#" alt="preview" style="max-width: 200px; max-height: 200px;">
+          </div>
 
-    <button type="submit" class="form__submit">CREATE</button>
-  </form>
+          <button type="submit" class="form__submit">CREATE</button>
+      </form>
 </div>
 </main>
 
@@ -207,7 +203,7 @@
     <button class="navbar__button profile-button">
       <div class="profile-button__border"></div>
       <div class="profile-button__picture">
-        <img src="../assets/default-user.png" alt="User Picture" />
+        <img src="/static//default-user.png" alt="User Picture" />
       </div>
     </button>
   </nav>

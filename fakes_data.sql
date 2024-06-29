@@ -1,11 +1,11 @@
 -- Insert Users Data
 INSERT INTO users_table (username, email, password, biography, isAdmin, isModerator, profile_pic)
 VALUES ('filmlover123', 'filmlover123@example.com', 'password123', 'Passionate about movies!', 0, 0,
-        'profile_pic1.jpg'),
+        '/static/images/userAvatar/default-user.png'),
        ('cinemafanatic', 'cinemafanatic@example.com', 'securepassword', 'Obsessed with all things cinema.', 0, 0,
-        'profile_pic2.jpg'),
+        '/static/images/userAvatar/default-user.png'),
        ('moviebuff456', 'moviebuff456@example.com', 'moviesarelife', 'Movie enthusiast exploring new genres.', 0, 0,
-        'profile_pic3.jpg');
+        '/static/images/userAvatar/default-user.png');
 
 -- Insert Topics Data
 INSERT INTO Topics_Table (title, body, status, is_private, user_id)
@@ -33,9 +33,9 @@ VALUES ('Banned user filmlover123 for violating forum rules.'),
        ('Moderated inappropriate content in topic Latest Releases.');
 
 -- Insert Images Data
-INSERT INTO images_Table (image_origin_name, image_serv_name, topic_id,image_link)
-VALUES ('movie_poster.jpg', 'movie_poster_1.jpg', 2,'/asstes/images/movie_poster_1.jpg'),
-       ('cinema_snapshot.png', 'cinema_snapshot_1.png', 3,'/asstes/images/cinema_snapshot_1.png');
+INSERT INTO images_Table (topic_id,image_link)
+VALUES (2,'/static/images/TopicsImg/movie_poster_1.jpg'),
+       (3,'/static/images/TopicsImg/cinema_snapshot_1.png');
 
 -- Insert Have Data
 INSERT INTO have (topic_id, tag_id)
@@ -72,4 +72,4 @@ VALUES (1, 2, NOW()),
        (2, 3, NOW()),
        (3, 1, NOW());
 
-INSERT INTO TopicTags (topic_id, tag_id) VALUES (1, 1),(1,2);
+INSERT INTO TopicTags (topic_id, tag_id) VALUES (1, 1),(1,2),(2, 1),(2,2),(3, 1),(3,2),(3, 4),(1,5);

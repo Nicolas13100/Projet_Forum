@@ -155,10 +155,10 @@
                             <%#!-- CONTENU POST--------------- --%>
                             <div class="post__content">
                                 <!-- si le post contient une image affiché l'image -->
-                                <% if(topic.image){ %>
+                                <% if(topic.imgPath && topic.imgPath !== "none"){ %>
                                     <div class="post__medias">
                                         <a href="/topic/<%= topic.topic_id %>" class="post__medias">
-                                            <img class="post__media" src="<%= topic.image %>" alt="Post Content"/>
+                                            <img class="post__media" src="<%= topic.imgPath %>" alt="Post Content"/>
                                         </a>
                                     </div>
                                 <% } %>
