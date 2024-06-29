@@ -106,7 +106,7 @@ main {
   justify-content: space-between;
   max-width: 210px;
   padding: 7px 20px;
-  font-weight: 500;
+  font-weight: 700;
   background-color: var(--koko-color);
   border-radius: 20px;
 }
