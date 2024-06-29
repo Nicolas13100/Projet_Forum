@@ -149,6 +149,7 @@
     </div>
     <section class="content-container">
       <div class="content">
+
         <div class="posts">
           <article class="post">
             <div class="post__header">
@@ -235,6 +236,7 @@
               <h1 class="hidden_comment">X</h1>
 
               <div class="allComments">
+<!-- tous  les commentaires du posts -->
                 <div class="comment_user">
                   <div class="img_user">
                     <img src="../assets/default-user.png" alt="User Picture" />
@@ -250,18 +252,16 @@
                         mais je suis content que tu l'ai apprécié.
                         je te conseille de regarder "The Notebook" un film romantique q.
                       </p>
-                      </p>
+                      <div class="reply_comment">
+                        <button class="reply_btn">Reply</button>
+                    </div>
+
                     </div>
 
                     <div class="comment_time">
                       <span>14 hours ago</span>
                     </div>
-                    <div class="reply_comment">
-                      <button class="reply_btn">Reply</button>
-                  </div>
-                  <div class="reply_comment">
-                    <button class="cancel_btn" style="display: none;">cancel</button>
-                </div>
+                 
                     <div class="reply_form" style="display: none;">
                         <form action="/commentPost" method="post">
                           <input type="text" name="comment" placeholder=" Laissez un Commentaire">
@@ -277,51 +277,10 @@
                   </div>
 
                   </div>
-                 
-                  <div class="comment_user">
-                    <div class="img_user">
-                      <img src="../assets/default-user.png" alt="User Picture" />
-                    </div>
-                    <div class="comment_shared">
-                      <div class="comment_info_user">
-                        <div class="comment_user_name">
-                          <a href="#">nicolas@68</a>
-                        </div>
-                      </div>
-                      <div class="commnent_text">
-                        <p> je l'ai vu ce film mais j'ai pas vraiment aimé le déroulé trop simple à mon gout
-                          mais je suis content que tu l'ai apprécié.
-                          je te conseille de regarder "The Notebook" un film romantique 
-                          Lorem ipsum dolor sit amet consectetur adipisicing elit. Sunt assumenda commodi ad? In, eligendi numquam quae omnis est impedit minus perspiciatis magnam. Vitae itaque consequatur mollitia, porro et eum
-                        </p>
-                        </p>
-                      </div>
-  
-                      <div class="comment_time">
-                        <span>14 hours ago</span>
-                      </div>
-                      <div class="reply_comment">
-                        <button class="reply_btn">Reply</button>
-                    </div>
-                    <div class="reply_comment">
-                      <button class="cancel_btn" style="display: none;">cancel</button>
-                  </div>
-                      <div class="reply_form" style="display: none;">
-                          <form action="/commentPost" method="post">
-                            <input type="text" name="comment" placeholder=" Laissez un Commentaire">
-                            <button type="submit" class="submit_btn_2" title="share">
-                              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path fill-rule="evenodd" clip-rule="evenodd"
-                                  d="M22.8555 3.44542C22.6978 3.16703 22.3962 3 22.0714 3L2.91369 3.01392C2.52859 3.01392 2.19453 3.25055 2.05997 3.60781C1.96254 3.86764 1.98574 4.14603 2.11565 4.37338C2.16669 4.45689 2.23165 4.53577 2.31052 4.60537L9.69243 10.9712L11.4927 20.5338C11.5623 20.9096 11.8499 21.188 12.2304 21.2483C12.6062 21.3086 12.9774 21.1323 13.1723 20.8029L22.8509 4.35018C23.0179 4.06715 23.0179 3.72381 22.8555 3.44542ZM4.21748 4.39194H19.8164L10.4255 9.75089L4.21748 4.39194ZM12.6248 18.9841L11.1122 10.948L20.5171 5.58436L12.6248 18.9841Z"
-                                  fill="var(--text-dark)" stroke="var(--text-dark)" stroke-width="0.3" />
-                              </svg>
-                            </button>
-                          </form>
-                        </div>
-                    </div>
-  
-                    </div>
 
+               
+                  
+                     
                   <!--repondre a un commentaire ajoutez un bouton reply lorqu'il clique dessus cela affiche le formulaire de reponse-->
                 </div>
 
@@ -331,8 +290,8 @@
 
               <!--LAISSER UN  COMMENTAIRE  SOI MEME-->
               <div class="own_comment comment_div">
-                <form action="/commentPost" method="post">
-                  <input type="text" name="comment" placeholder=" Laissez un Commentaire">
+                <form action="#" method="post">
+                  <input type="text" name="comment" id="commentInput" placeholder=" Laissez un Commentaire">
                   <button type="submit" class="submit_btn" title="share">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path fill-rule="evenodd" clip-rule="evenodd"
@@ -356,7 +315,7 @@
           </a>
 
           <div class="side-menu__user-info">
-            <a href="#" target="_blank">nicolas@97</a>
+            <a href="#" target="_blank">Sabrina@37</a>
             <span>
               <%= user %>
             </span>
@@ -412,7 +371,7 @@
 
     </section>
   </main>
-  </main>
+  
 
 
   <nav class="navbar">
@@ -442,23 +401,7 @@
     </button>
   </nav>
 </body>
-<!--js pour la fonctionnalité-->
-<script>
-  const replyBtn = document.querySelector('.reply_btn');
-  const cancelBtn = document.querySelector('.cancel_btn');
-  const replyForm = document.querySelector('.reply_form');
 
-  replyBtn.addEventListener('click', () => {
-    replyForm.style.display = 'block';
-    cancelBtn.style.display = 'block';
-    replyBtn.style.display = 'none';
-  });
-//masquer le form
-cancelBtn.addEventListener('click', () => {
-    replyForm.style.display = 'none';
-    cancelBtn.style.display = 'none';
-    replyBtn.style.display = 'block';
-  });
+<!--js pour la fonctionnalité de reponse-->
 
-</script>
 </html>
