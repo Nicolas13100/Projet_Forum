@@ -67,6 +67,7 @@ main {
 }
 
 .profil_informations__picture {
+  background-color:var(--img-border);
   width: 120px;
   height: 120px;
   margin: 0px 5px;
@@ -231,7 +232,7 @@ bottom: 10px;
 }
 }
 
-@media screen and (max-width: 640px) {
+@media screen and (max-width: 800px) {
     .profil_informations__picture {
       width:90px;
       height:90px
@@ -245,6 +246,7 @@ bottom: 10px;
    }
   .profil_biogragraphy{
 position: absolute;
+    right:230px;
 bottom: 10px;
 }
   
