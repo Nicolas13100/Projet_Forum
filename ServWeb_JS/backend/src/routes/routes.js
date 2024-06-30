@@ -28,8 +28,6 @@ router.get('/meUser', (req, res) => {
     if (!logged) {
         return res.redirect('/login');
     }
-
-
     res.render('category', { title: 'Category' });
 });
 
@@ -311,8 +309,20 @@ router.get('/message', (req, res) => {
     res.render('message', { title: 'Message' });
 });
 
-router.get('/profil', (req, res) => {
-    res.render('profil', { title: 'Profil' });
+    
+//afficher un utilisateur par son id
+router.get('/user/:id', async (req, res) => {
+    const url = `http://localhost:8080/api/getUser/${req.params.id}`;
+    const token = req.cookies.token;
+    const logged = token !== undefined;
+    let user;
+    try {
+        const response = await axios.get(url);
+        user = response.data.user;
+    } catch (error) {
+        console.log(error);
+    }
+    res.render('profil', { user, logged });
 });
 
 router.get('/search', (req, res) => {
