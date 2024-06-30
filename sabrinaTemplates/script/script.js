@@ -70,7 +70,7 @@ toggleThemeBtn.addEventListener('click', () => {
 });
 
 
-//BAD WORD FILTRE
+//repondre a un message
 document.addEventListener('DOMContentLoaded', function () {
   const replyButtons = document.querySelectorAll('.reply_btn');
   const commentInput = document.getElementById('commentInput');
@@ -84,31 +84,3 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 
-document.getElementById('commentForm').addEventListener('submit', function(event) {
-        event.preventDefault(); // Empêcher l'envoi du formulaire par défaut
-
-        // Récupérer le commentaire saisi par l'utilisateur
-        const comment = document.getElementById('commentInput').value;
-
-        // Vérifier si le commentaire contient des mots interdits
-        if (checkComment(comment)) {
-            // commentaire est acceptable, soumettre le formulaire
-            this.submit();
-        } else {
-            // inapproprié, afficher l'avertissement
-            alert("Votre commentaire contient des mots inappropriés. Veuillez modifier votre commentaire.");
-        }
-    });
-
-    // Fonction de vérification de commentaire (exemple simple)
-    function checkComment(comment) {
-        const forbiddenWords = ['insulte', 'inapproprié', 'controversé']; // Liste de mots interdits
-
-        for (let word of forbiddenWords) {
-            if (comment.toLowerCase().includes(word)) {
-                return false; // Le commentaire contient un mot interdit
-            }
-        }
-
-        return true; 
-    }

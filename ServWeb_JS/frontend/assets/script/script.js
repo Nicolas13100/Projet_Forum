@@ -16,16 +16,9 @@ const textPost =post.querySelector('.post-text');
 const mediaPost=post.querySelector('.post__medias')
 const categoryPost =post.querySelector('.post-category');
 const Btn_moreOption=post.querySelector('.post__more-options');
-const replyButtons = post.querySelectorAll('.reply_btn');
-const commentInput = post.querySelector('#commentInput');
 
-replyButtons.forEach(button => {
-  button.addEventListener('click', function () {
-    const userName = button.closest('.comment_user').querySelector('.comment_user_name a').textContent;
-    commentInput.value = `@${userName.trim()} `;
-    commentInput.focus();
-  });
-});
+//fonction affcher les details d'un post
+
 
   // Fonction pour afficher la section de commentaires
   function displayCommentSection() {
@@ -77,8 +70,16 @@ toggleThemeBtn.addEventListener('click', () => {
 });
 
 
-//BAD WORD FILTRE
+//repondre a un message
 document.addEventListener('DOMContentLoaded', function () {
+  const replyButtons = document.querySelectorAll('.reply_btn');
+  const commentInput = document.getElementById('commentInput');
 
-  
+  replyButtons.forEach(button => {
+    button.addEventListener('click', function () {
+      const userName = button.closest('.comment_user').querySelector('.comment_user_name a').textContent;
+      commentInput.value = `@${userName.trim()} `;
+      commentInput.focus();
+    });
+  });
 });
