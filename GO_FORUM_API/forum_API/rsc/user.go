@@ -107,3 +107,75 @@ func GetUsersFollowers(w http.ResponseWriter, r *http.Request) {
 	}
 	sendResponse(w, response)
 }
+
+func GetUsersFollowing(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		sendResponse(w, APIResponse{Status: http.StatusMethodNotAllowed, Message: "Method not allowed"})
+		return
+	}
+
+	// Extract user_id from URL parameter
+	vars := mux.Vars(r)
+	userID := vars["id"]
+	if userID == "" {
+		sendResponse(w, APIResponse{Status: http.StatusBadRequest, Message: "Missing user_id parameter"})
+		return
+	}
+
+	// Adjust your SQL query to select count of followers
+	var followingCount int
+	err := db.QueryRow(`
+        SELECT COUNT(*)
+        FROM followuser
+        WHERE user_id = ?
+    `, userID).Scan(&followingCount)
+	if err != nil {
+		log.Printf("Error querying database: %v", err)
+		sendResponse(w, APIResponse{Status: http.StatusInternalServerError, Message: "Internal Server Error"})
+		return
+	}
+
+	// Prepare response with the follower count
+	response := APIResponse{
+		Status:       http.StatusOK,
+		Message:      "Success",
+		FollowerData: map[string]int{"following_count": followingCount},
+	}
+	sendResponse(w, response)
+}
+
+func GetUsersFollow(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		sendResponse(w, APIResponse{Status: http.StatusMethodNotAllowed, Message: "Method not allowed"})
+		return
+	}
+
+	// Extract user_id from URL parameter
+	vars := mux.Vars(r)
+	userID := vars["id"]
+	if userID == "" {
+		sendResponse(w, APIResponse{Status: http.StatusBadRequest, Message: "Missing user_id parameter"})
+		return
+	}
+
+	// Adjust your SQL query to select count of followers
+	var followingCount int
+	err := db.QueryRow(`
+        SELECT COUNT(*)
+        FROM followuser
+        WHERE follower_id = ?
+    `, userID).Scan(&followingCount)
+	if err != nil {
+		log.Printf("Error querying database: %v", err)
+		sendResponse(w, APIResponse{Status: http.StatusInternalServerError, Message: "Internal Server Error"})
+		return
+	}
+
+	// Prepare response with the follower count
+	response := APIResponse{
+		Status:       http.StatusOK,
+		Message:      "Success",
+		FollowerData: map[string]int{"follower_count": followingCount},
+	}
+	sendResponse(w, response)
+}
