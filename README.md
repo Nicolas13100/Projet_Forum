@@ -77,8 +77,7 @@ Assurez-vous d'avoir les logiciels suivants installés :
 1. **Structure du répertoire :**
    - Les templates EJS sont placés dans le répertoire `templates` à l'intérieur du répertoire `Servweb_js`.
    -  structure:
-     ```
- Servweb_js/
+     ```Servweb_js/
      ├── backend/
      │   ├── src/
      │   │     ├── routes/
@@ -86,7 +85,6 @@ Assurez-vous d'avoir les logiciels suivants installés :
      ├── frontend/
          ├── assets/
          ├── templates/
-        
      ```
 ---
 
