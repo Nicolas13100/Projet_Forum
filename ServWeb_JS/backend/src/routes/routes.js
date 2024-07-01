@@ -21,16 +21,6 @@ router.get('/', (req, res) => {
     res.redirect('/home');
 });
 
-router.get('/meUser', (req, res) => {
-    const token = req.cookies.token;
-    const logged = token !== undefined;
-
-    if (!logged) {
-        return res.redirect('/login');
-    }
-    res.render('category', { title: 'Category' });
-});
-
 router.get('/category', (req, res) => {
     res.render('category', { title: 'Category' });
 });
@@ -39,7 +29,6 @@ router.get('/createTopic', (req, res) => {
 
     res.render('createTopic', { title: 'CreateTopic' });
 });
-
 
 router.post('/createTopic', upload.single('image'), async (req, res) => {
     const token = req.cookies.token;
@@ -427,7 +416,10 @@ router.get('/user/:id', async (req, res) => {
 });
 
 router.get('/search', (req, res) => {
-    res.render('search', { title: 'Search' });
+    const token = req.cookies.token;
+    const logged = token !== undefined;
+
+    res.render('search', { logged });
 });
 
 module.exports = router;
