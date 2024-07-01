@@ -673,3 +673,45 @@ func GetTopicImg(w http.ResponseWriter, r *http.Request) {
 	response := APIResponse{Status: http.StatusOK, ImagePath: imagePath}
 	sendResponse(w, response)
 }
+
+func GetUserTopics(w http.ResponseWriter, r *http.Request) {
+	// Check method
+	if r.Method != http.MethodGet {
+		response := APIResponse{Status: http.StatusMethodNotAllowed, Message: "Method not allowed"}
+		sendResponse(w, response)
+		return
+	}
+
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	// Query the database for topics with the given user ID
+	rows, err := db.Query("SELECT topic_id, title, body, creation_date, status, is_private, user_id FROM Topics_Table WHERE user_id = ?", id)
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var topics []Topic
+
+	for rows.Next() {
+		var topic Topic
+		err := rows.Scan(&topic.TopicID, &topic.Title, &topic.Body, &topic.CreationDate, &topic.Status, &topic.IsPrivate, &topic.UserID)
+		if err != nil {
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+		topics = append(topics, topic)
+	}
+
+	// Check if no topics were found
+	if len(topics) == 0 {
+		response := APIResponse{Status: http.StatusNotFound, Message: "No topics found for this user"}
+		sendResponse(w, response)
+		return
+	}
+
+	response := APIResponse{Status: http.StatusOK, Message: "Success", TopicList: topics}
+	sendResponse(w, response)
+}

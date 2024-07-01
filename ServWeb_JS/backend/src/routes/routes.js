@@ -21,16 +21,6 @@ router.get('/', (req, res) => {
     res.redirect('/home');
 });
 
-router.get('/meUser', (req, res) => {
-    const token = req.cookies.token;
-    const logged = token !== undefined;
-
-    if (!logged) {
-        return res.redirect('/login');
-    }
-    res.render('category', { title: 'Category' });
-});
-
 router.get('/category', (req, res) => {
     res.render('category', { title: 'Category' });
 });
@@ -39,7 +29,6 @@ router.get('/createTopic', (req, res) => {
 
     res.render('createTopic', { title: 'CreateTopic' });
 });
-
 
 router.post('/createTopic', upload.single('image'), async (req, res) => {
     const token = req.cookies.token;
@@ -312,21 +301,125 @@ router.get('/message', (req, res) => {
     
 //afficher un utilisateur par son id
 router.get('/user/:id', async (req, res) => {
-    const url = `http://localhost:8080/api/getUser/${req.params.id}`;
+    const userId = req.params.id;
+    const ThisUrl = `http://localhost:8080/api/getUser/${userId}`;
+    const randomUserUrl = 'http://localhost:8080/api/getRandomUser';
+    const userTopicsUrl = `http://localhost:8080/api/getUserTopics/${userId}`;
+    const tagUrl = 'http://localhost:8080/api/getTopicTag';
+    const ownerUrl = 'http://localhost:8080/api/getTopicOwner';
+    const likeUrl = 'http://localhost:8080/api/getLikeTopicNumber';
+    const topicImgUrl = 'http://localhost:8080/api/getTopicImg';
+    const followUrl = 'http://localhost:8080/api/getFollowers';
+    const userFollowersUrl = `http://localhost:8080/api/getUserFollow/${userId}`;
+    const userFollowingUrl = `http://localhost:8080/api/getUserFollowings/${userId}`;
     const token = req.cookies.token;
     const logged = token !== undefined;
-    let user;
-    try {
-        const response = await axios.get(url);
-        user = response.data.user;
-    } catch (error) {
-        console.log(error);
+
+    if (!logged) {
+        return res.redirect('/login');
     }
-    res.render('profil', { user, logged });
+
+    let topics = [];
+    try {
+        // Fetch user topics
+        const response = await axios.get(userTopicsUrl);
+        if (response.data && response.data.TopicList) {
+            topics = response.data.TopicList;
+        }
+
+        // Create promises for fetching additional topic data
+        const tagPromises = topics.map(topic => axios.get(`${tagUrl}/${topic.topic_id}`));
+        const ownerPromises = topics.map(topic => axios.get(`${ownerUrl}/${topic.topic_id}`));
+        const likePromises = topics.map(topic => axios.get(`${likeUrl}/${topic.topic_id}`));
+        const imgPromises = topics.map(topic => axios.get(`${topicImgUrl}/${topic.topic_id}`));
+
+        // Resolve all promises
+        const [tagResponses, ownerResponses, likeResponses, imgResponses] = await Promise.all([
+            Promise.all(tagPromises),
+            Promise.all(ownerPromises),
+            Promise.all(likePromises),
+            Promise.all(imgPromises)
+        ]);
+
+        // Merge fetched data into topics
+        topics.forEach((topic, index) => {
+            topic.tags = tagResponses[index]?.data?.data || [];
+            topic.owner = ownerResponses[index]?.data?.UserData || {};
+            topic.numberOfLike = likeResponses[index]?.data?.NumberOfLike?.like_count || 0;
+            topic.imgPath = imgResponses[index]?.data?.ImagePath || '';
+        });
+
+    } catch (error) {
+        if (error.response && error.response.data && error.response.data.message === "No topics found for this user") {
+            topics = [];
+        } else {
+            console.error('Error fetching topics:', error);
+            return res.status(500).send('An error occurred while fetching topics');
+        }
+    }
+
+    let forYou = [];
+    try {
+        // Fetch random users
+        const forYouResponse = await axios.get(randomUserUrl);
+        const users = forYouResponse.data.UsersData || [];
+
+        // Create promises for fetching followers
+        const followerPromises = users.map(user => axios.get(`${followUrl}/${user.user_id}`));
+        const followerResponses = await Promise.all(followerPromises);
+
+        // Merge follower data into users
+        users.forEach((user, index) => {
+            user.followers = followerResponses[index]?.data?.FollowerData?.follower_count || 0;
+        });
+
+        forYou = users;
+
+    } catch (error) {
+        console.error('Error fetching random users:', error);
+    }
+
+    let user = {};
+    try {
+        const userResponse = await axios.get(ThisUrl);
+        user = userResponse.data.user || {};
+    } catch (error) {
+        console.error('Error fetching user data:', error);
+        return res.status(500).send('An error occurred while fetching user data');
+    }
+
+    let followersNumber ={}
+    let followingNumber ={}
+
+    try {
+        const followers = await axios.get(userFollowersUrl);
+        const following= await axios.get(userFollowingUrl);
+        followersNumber= followers.data.FollowerData.follower_count;
+        followingNumber= following.data.FollowerData.following_count;
+    }catch (e) {
+        console.log(e)
+    }
+
+    const topicsLength = topics.length;
+
+    const renderOptions = {
+        user,
+        logged,
+        topics,
+        forYou,
+        topicsLength,
+        followersNumber,
+        followingNumber
+    };
+
+    res.render('profil', renderOptions);
 });
 
 router.get('/search', (req, res) => {
-    res.render('search', { title: 'Search' });
+    const token = req.cookies.token;
+    const logged = token !== undefined;
+
+    res.render('search', { logged });
 });
 
 module.exports = router;

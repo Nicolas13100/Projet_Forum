@@ -142,6 +142,16 @@ CREATE TABLE follow
     FOREIGN KEY (topic_id) REFERENCES Topics_Table (topic_id)
 ) ENGINE = INNODB;
 
+CREATE TABLE followUser
+(
+    user_id       INT,
+    follower_id      INT,
+    followed_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(),
+    PRIMARY KEY (user_id, follower_id),
+    FOREIGN KEY (user_id) REFERENCES users_Table (user_id),
+    FOREIGN KEY (follower_id) REFERENCES users_Table (user_id)
+) ENGINE = INNODB;
+
 CREATE TABLE tokens
 (
     token_id INT AUTO_INCREMENT,

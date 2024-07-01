@@ -52,6 +52,7 @@ type APIResponse struct {
 	UserID       int                    `json:"UserID,omitempty"`
 	User         User                   `json:"user,omitempty"`
 	ImagePath    string                 `json:"ImagePath,omitempty"`
+	TopicList    []Topic
 }
 
 type Topic struct {
