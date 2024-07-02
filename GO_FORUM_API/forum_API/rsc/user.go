@@ -179,3 +179,42 @@ func GetUsersFollow(w http.ResponseWriter, r *http.Request) {
 	}
 	sendResponse(w, response)
 }
+
+func IsFollower(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		sendResponse(w, APIResponse{Status: http.StatusMethodNotAllowed, Message: "Method not allowed"})
+		return
+	}
+
+	// Extract user_id from URL parameter
+	vars := mux.Vars(r)
+	userID := vars["myId"]
+	otherID := vars["otherId"]
+	if userID == "" {
+		sendResponse(w, APIResponse{Status: http.StatusBadRequest, Message: "Missing user.user_id parameter"})
+		return
+	}
+	if otherID == "" {
+		sendResponse(w, APIResponse{Status: http.StatusBadRequest, Message: "Missing user_id parameter"})
+		return
+	}
+
+	var following bool
+	err := db.QueryRow(`
+        SELECT COUNT(*)
+        FROM followUser
+        WHERE follower_id = ? AND user_id = ?
+    `, userID, otherID).Scan(&following)
+	if err != nil {
+		log.Printf("Error querying database: %v", err)
+		sendResponse(w, APIResponse{Status: http.StatusInternalServerError, Message: "Internal Server Error"})
+		return
+	}
+	// Prepare response with the follower count
+	response := APIResponse{
+		Status:     http.StatusOK,
+		Message:    "Success",
+		IsFollower: following,
+	}
+	sendResponse(w, response)
+}
