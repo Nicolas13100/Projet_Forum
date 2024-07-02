@@ -71,7 +71,7 @@ CREATE TABLE Admin_Logs_Table
 CREATE TABLE images_Table
 (
     image_id          INT AUTO_INCREMENT,
-    image_link        VARCHAR(1000) NOT NULL DEFAULT '/assets/img/default-user.png',
+    image_link        VARCHAR(500) NOT NULL DEFAULT '/assets/img/default-user.png',
     message_id        INT,
     topic_id          INT,
     PRIMARY KEY (image_id),
