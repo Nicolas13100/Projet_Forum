@@ -18,8 +18,24 @@ INSERT INTO Tags_Table (tag_name)
 VALUES ('Action'),
        ('Drama'),
        ('Comedy'),
-       ('Sci-Fi'),
-       ('Horror');
+       ('Science-fiction'),
+       ('Anime'),
+        ('Fantasy'),
+        ('Romance'),
+        ('Thriller'),
+        ('Mystery'),
+        ('Documentary'),
+        ('Musical'),
+        ('Adventure'),
+        ('Crime'),
+        ('Biography'),
+        ('Family'),
+        ('History'),
+        ('War'),
+        ('Sport'),
+        ('Western'),
+        ('Music'),
+        ('Horror');
 
 -- Insert Messages Data
 INSERT INTO Messages_Table (body, topic_id, user_id)
