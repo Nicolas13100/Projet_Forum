@@ -139,12 +139,17 @@ body {
 .header__search {
   width: 216px;
   height: 28px;
-
   display: none;
   align-items: center;
-  position: relative;
 }
 
+.search-form{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+
+}
 .header__search svg {
   width: 12px;
   height: 12px;

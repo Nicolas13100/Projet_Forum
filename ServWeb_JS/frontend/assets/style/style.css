@@ -139,23 +139,28 @@ body {
 .header__search {
   width: 216px;
   height: 28px;
-
   display: none;
   align-items: center;
-  position: relative;
+
 }
 
+.search-form{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  position: relative;
+background-color: aqua;
+}
 .header__search svg {
   width: 12px;
   height: 12px;
-
-  position: absolute;
-  left: 8px;
+  background-color: transparent;
+ z-index: 11;
 }
 
 .header__search input {
-  width: 100%;
-  height: 100%;
   background-color: var(--secondary);
   padding: 4px 10px 4px 28px;
   border: 1px solid var(--border);
