@@ -436,7 +436,7 @@ router.get('/user/:id', async (req, res) => {
     res.render('profil', renderOptions);
 });
 
-router.get('/search/:search', async (req, res) => {
+router.get('/search', async (req, res) => {
     const token = req.cookies.token;
     const logged = token !== undefined;
     const userIDByToken = 'http://localhost:8080/api/getUserIDByToken';
@@ -460,7 +460,7 @@ router.get('/search/:search', async (req, res) => {
     }
     let topics
     try{
-        topics = await axios.get(`${searchUrl}?q=${req.params.search}`);
+        topics = await axios.get(`${searchUrl}?q=${req.query.query}`);
         // Arrays to store promises for fetching tag and owner data
         const tagPromises = [];
         const ownerPromises = [];
