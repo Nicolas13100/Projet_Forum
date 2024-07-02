@@ -270,7 +270,7 @@ router.post('/register', async (req, res) => {
         });
 
         // Redirect to /home
-        res.redirect('/home');
+        res.redirect('/login');
 
     } catch (error) {
         if (error.response) {
