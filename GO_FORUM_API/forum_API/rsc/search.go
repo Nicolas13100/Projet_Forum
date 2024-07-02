@@ -2,7 +2,6 @@ package API
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -36,17 +35,10 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 		Messages: messages,
 	}
 
-	jsonResp, err := json.Marshal(results)
-	if err != nil {
-		log.Printf("Error encoding JSON response: %v", err)
-		http.Error(w, "Error encoding JSON response", http.StatusInternalServerError)
-		return
-	}
-
 	response := APIResponse{
-		Status:   http.StatusOK,
-		Message:  "Search results",
-		JsonResp: json.RawMessage(jsonResp),
+		Status:        http.StatusOK,
+		Message:       "Search results",
+		SearchResults: results,
 	}
 
 	sendResponse(w, response)
