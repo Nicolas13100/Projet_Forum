@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 )
 
-// SearchHandler handles search queries for topics and messages
 // SearchHandler handles search queries for topics and messages
 func SearchHandler(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query().Get("q")
@@ -90,9 +90,17 @@ func searchMessages(query string) ([]Message, error) {
 	for rows.Next() {
 		var m Message
 		var baseMessageID sql.NullInt64
-		if err := rows.Scan(&m.MessageID, &m.Body, &m.DateSent, &m.TopicID, &baseMessageID, &m.UserID); err != nil {
+		var dateSentString string
+		if err := rows.Scan(&m.MessageID, &m.Body, &dateSentString, &m.TopicID, &baseMessageID, &m.UserID); err != nil {
 			return nil, err
 		}
+
+		// Parse the dateSentString into time.Time
+		m.DateSent, err = time.Parse("2006-01-02 15:04:05", dateSentString)
+		if err != nil {
+			return nil, err
+		}
+
 		if baseMessageID.Valid {
 			baseMessageIDValue := int(baseMessageID.Int64)
 			m.BaseMessageID = &baseMessageIDValue
