@@ -314,9 +314,17 @@ router.get('/user/:id', async (req, res) => {
     const userFollowingUrl = `http://localhost:8080/api/getUserFollowings/${userId}`;
     const token = req.cookies.token;
     const logged = token !== undefined;
-
-    if (!logged) {
-        return res.redirect('/login');
+    let loggedUser ={}
+    if (logged){
+        try{
+            const userIDByToken = 'http://localhost:8080/api/getUserIDByToken';
+            const userDataUrl = 'http://localhost:8080/api/getUser';
+            const userID = await axios.get(`${userIDByToken}/${token}`, {});
+            const userData = await axios.get(`${userDataUrl}/${userID.data.UserID}`, {});
+            loggedUser = userData.data.user
+        }catch(e){
+            console.log(e.data);
+        }
     }
 
     let topics = [];
@@ -401,17 +409,29 @@ router.get('/user/:id', async (req, res) => {
     }
 
     const topicsLength = topics.length;
-
-    const renderOptions = {
-        user,
-        logged,
-        topics,
-        forYou,
-        topicsLength,
-        followersNumber,
-        followingNumber
-    };
-
+    let renderOptions
+    if (logged){
+        renderOptions = {
+            user,
+            loggedUser,
+            logged,
+            topics,
+            forYou,
+            topicsLength,
+            followersNumber,
+            followingNumber
+        };
+    }else {
+        renderOptions = {
+            user,
+            logged,
+            topics,
+            forYou,
+            topicsLength,
+            followersNumber,
+            followingNumber
+        };
+    }
     res.render('profil', renderOptions);
 });
 

@@ -107,11 +107,11 @@
                 </svg>
             </a>
               <% if (logged) { %>
-            <a href="/user/<%= user.user_id %>">
+            <a href="/user/<%= loggedUser.user_id %>">
                 <button class="profile-button" title="My Profil">
                     <div class="profile-button__border"></div>
                     <div class="profile-button__picture">
-                        <img src="<%= user.profile_pic %>" alt="<%= user.username %>"/>
+                        <img src="<%= loggedUser.profile_pic %>" alt="<%= loggedUser.username %>"/>
                     </div>
                 </button>
             </a>
@@ -414,12 +414,12 @@
         <section class="side-menu">
             <% if (logged) { %>
                 <div class="side-menu__user-profile">
-                    <a href="/user/<%= user.user_id %>" target="_blank" class="side-menu__user-avatar">
-                        <img src="<%= user.profile_pic %>" class="product-imagePath" alt="<%= user.username %>">
+                    <a href="/user/<%= loggedUser.user_id %>" target="_blank" class="side-menu__user-avatar">
+                        <img src="<%= loggedUser.profile_pic %>" class="product-imagePath" alt="<%= loggedUser.username %>">
                     </a>
                     <div class="side-menu__user-info">
-                        <a href="/user/<%= user.user_id %>" target="_blank">
-                            <span><%= user.username %></span>
+                        <a href="/user/<%= loggedUser.user_id %>" target="_blank">
+                            <span><%= loggedUser.username %></span>
                         </a>
                     </div>
                     <a href="/logout"><button class="side-menu__user-button">Switch account</button></a>
