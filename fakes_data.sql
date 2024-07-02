@@ -5,7 +5,10 @@ VALUES ('filmlover123', 'filmlover123@example.com', 'password123', 'Passionate a
        ('cinemafanatic', 'cinemafanatic@example.com', 'securepassword', 'Obsessed with all things cinema.', 0, 0,
         '/static/images/userAvatar/default-user.png'),
        ('moviebuff456', 'moviebuff456@example.com', 'moviesarelife', 'Movie enthusiast exploring new genres.', 0, 0,
-        '/static/images/userAvatar/default-user.png');
+        '/static/images/userAvatar/default-user.png'),
+        ('sabrina','sabrinnaeloundou33@gmail.com','sabrina','I love horror movies',0,0,'/static/images/userAvatar/sylvess.png');
+      
+       
 
 -- Insert Topics Data
 INSERT INTO Topics_Table (title, body, status, is_private, user_id)
@@ -18,8 +21,24 @@ INSERT INTO Tags_Table (tag_name)
 VALUES ('Action'),
        ('Drama'),
        ('Comedy'),
-       ('Sci-Fi'),
-       ('Horror');
+       ('Science-fiction'),
+       ('Anime'),
+        ('Fantasy'),
+        ('Romance'),
+        ('Thriller'),
+        ('Mystery'),
+        ('Documentary'),
+        ('Musical'),
+        ('Adventure'),
+        ('Crime'),
+        ('Biography'),
+        ('Family'),
+        ('History'),
+        ('War'),
+        ('Sport'),
+        ('Western'),
+        ('Music'),
+        ('Horror');
 
 -- Insert Messages Data
 INSERT INTO Messages_Table (body, topic_id, user_id)
