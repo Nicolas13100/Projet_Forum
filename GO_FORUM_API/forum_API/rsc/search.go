@@ -46,7 +46,7 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 
 // Helper functions to search topics and messages
 func searchTopics(query string) ([]Topic, error) {
-	queryString := "SELECT topic_id, title, body, creation_date, status, is_private, user_id FROM Topics_Table WHERE title LIKE ? OR body LIKE ?"
+	queryString := "SELECT topic_id, title, body, creation_date, status, is_private, user_id FROM Topics_Table WHERE LOWER(title) LIKE LOWER(?) OR LOWER(body) LIKE LOWER(?)"
 	rows, err := db.Query(queryString, "%"+query+"%", "%"+query+"%")
 	if err != nil {
 		return nil, err
@@ -74,7 +74,7 @@ func searchTopics(query string) ([]Topic, error) {
 }
 
 func searchMessages(query string) ([]Message, error) {
-	queryString := "SELECT message_id, body, date_sent, topic_id, base_message_id, user_id FROM Messages_Table WHERE body LIKE ?"
+	queryString := "SELECT message_id, body, date_sent, topic_id, base_message_id, user_id FROM Messages_Table WHERE LOWER(body) LIKE LOWER(?)"
 	rows, err := db.Query(queryString, "%"+query+"%")
 	if err != nil {
 		return nil, err
@@ -132,7 +132,12 @@ func GetForYouUser(w http.ResponseWriter, r *http.Request) {
 		sendResponse(w, APIResponse{Status: http.StatusInternalServerError, Message: "Internal Server Error"})
 		return
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+
+		}
+	}(rows)
 
 	// Prepare a slice to hold the results
 	var users []User // Assuming User is a struct containing user_id, username, and profile_pic
