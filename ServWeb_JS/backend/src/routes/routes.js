@@ -416,11 +416,84 @@ router.get('/user/:id', async (req, res) => {
     res.render('profil', renderOptions);
 });
 
-router.get('/search', (req, res) => {
+router.get('/search/:search', async (req, res) => {
     const token = req.cookies.token;
     const logged = token !== undefined;
+    const userIDByToken = 'http://localhost:8080/api/getUserIDByToken';
+    const userDataUrl = 'http://localhost:8080/api/getUser';
+    const searchUrl = 'http://localhost:8080/api/search';
+    const TagUrl = 'http://localhost:8080/api/getTopicTag';
+    const ownerUrl = 'http://localhost:8080/api/getTopicOwner';
+    const likeUrl = 'http://localhost:8080/api/getLikeTopicNumber';
+    const topicImgUrl = 'http://localhost:8080/api/getTopicImg'
+    const randomUserUrl = 'http://localhost:8080/api/getRandomUser';
+    const followUrl = 'http://localhost:8080/api/getFollowers';
+    let user;
+    if (logged) {
+        try {
+            const userID = await axios.get(`${userIDByToken}/${token}`, {});
+            const userData = await axios.get(`${userDataUrl}/${userID.data.UserID}`, {});
+            user = userData.data.user
+        } catch (e) {
+            console.log(e.data);
+        }
+    }
+    let topics
+    try{
+        topics = await axios.get(`${searchUrl}?q=${req.params.search}`);
+        // Arrays to store promises for fetching tag and owner data
+        const tagPromises = [];
+        const ownerPromises = [];
+        const numberOfLikePromises =[];
+        const topicImgPromises =[];
 
-    res.render('search', { logged });
+        // Iterate through topics and create promises for fetching tag and owner data
+        for (const topic of topics.data.SearchResults.topics) {
+            const topic_id = topic.topic_id;
+
+            // Create promises for fetching tag and owner data
+            const fetchTagPromise = axios.get(`${TagUrl}/${topic_id}`);
+            const fetchOwnerPromise = axios.get(`${ownerUrl}/${topic_id}`);
+            const fetchNumberOfLikePromise = axios.get(`${likeUrl}/${topic_id}`);
+            const fetchTopicImgPromise=axios.get(`${topicImgUrl}/${topic_id}`)
+
+            // Store the promises
+            tagPromises.push(fetchTagPromise);
+            ownerPromises.push(fetchOwnerPromise);
+            numberOfLikePromises.push(fetchNumberOfLikePromise);
+            topicImgPromises.push(fetchTopicImgPromise)
+        }
+
+        // Wait for all tag and owner data requests to resolve
+        const tagResponses = await Promise.all(tagPromises);
+        const ownerResponses = await Promise.all(ownerPromises);
+        const numberOfLikeResponses = await Promise.all(numberOfLikePromises)
+        const topicImgResponses=await Promise.all(topicImgPromises)
+
+        // Merge tag and owner data into respective topics
+        tagResponses.forEach((tagResponse, index) => {
+            topics.data.SearchResults.topics[index].tags = tagResponse.data.data;
+        });
+
+        ownerResponses.forEach((ownerResponse, index) => {
+            topics.data.SearchResults.topics[index].owner = ownerResponse.data.UserData;
+        });
+
+        numberOfLikeResponses.forEach((likeResponse, index) => {
+            topics.data.SearchResults.topics[index].numberOfLike = likeResponse.data.NumberOfLike.like_count;
+        })
+
+        topicImgResponses.forEach((imgResponse, index) => {
+            topics.data.SearchResults.topics[index].imgPath = imgResponse.data.ImagePath;
+        })
+    }catch (e) {
+        console.log(e)
+    }
+
+    const topicsFound = topics.data.SearchResults.topics
+    const messageFound = topics.data.SearchResults.messages
+
+    res.render('search', {logged, user, topicsFound, messageFound });
 });
 
 module.exports = router;
