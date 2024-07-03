@@ -54,6 +54,7 @@ type APIResponse struct {
 	ImagePath     string                 `json:"ImagePath,omitempty"`
 	TopicList     []Topic
 	SearchResults SearchResults
+	IsFollower    bool
 }
 
 type Topic struct {

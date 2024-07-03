@@ -75,9 +75,10 @@ router.get('/home', async (req, res) => {
     const likeUrl = 'http://localhost:8080/api/getLikeTopicNumber';
     const topicImgUrl = 'http://localhost:8080/api/getTopicImg'
     const randomUserUrl = 'http://localhost:8080/api/getRandomUser';
-    const followUrl = 'http://localhost:8080/api/getFollowers';
+    const followerCountUrl = 'http://localhost:8080/api/getFollowers';
     const userIDByToken = 'http://localhost:8080/api/getUserIDByToken';
     const userDataUrl = 'http://localhost:8080/api/getUser';
+    const isFollowedUrl ='http://localhost:8080/api/isFollowed'
     const token = req.cookies.token;
     const logged = token !== undefined;
     let response;
@@ -135,34 +136,61 @@ router.get('/home', async (req, res) => {
         console.log(error);
     }
 
-    let forYou
+
+    let user
+    if (logged){
+        try{
+            const userID = await axios.get(`${userIDByToken}/${token}`, {});
+            const userData = await axios.get(`${userDataUrl}/${userID.data.UserID}`, {});
+            user = userData.data.user
+        }catch(e){
+        console.log(e.data);
+        }
+    }
+
+    let forYou;
+    let isFollowed;
     const followerPromises = [];
-    try{
+    const followStatusPromises = [];
+    try {
+        // Fetch the list of users
         forYou = await axios.get(randomUserUrl, {});
-        for (const user of forYou.data.UsersData) {
-            const user_id = user.user_id
-            const fetchFollowersPromise = axios.get(`${followUrl}/${user_id}`);
+
+        for (const thisUser of forYou.data.UsersData) {
+            const user_id = thisUser.user_id;
+
+            // Fetch the follower count
+            const fetchFollowersPromise = axios.get(`${followerCountUrl}/${user_id}`);
             followerPromises.push(fetchFollowersPromise);
+
+            if (logged) {
+                // Fetch whether the user is followed or not
+                const fetchFollowStatusPromise = axios.get(`${isFollowedUrl}/${user.user_id}/${user_id}`);
+                followStatusPromises.push(fetchFollowStatusPromise);
+            }
         }
 
+        // Wait for all follower count responses
         const followerResponses = await Promise.all(followerPromises);
 
-        followerResponses.forEach((followerResponses, index) => {
-            forYou.data.UsersData[index].followers = followerResponses.data.FollowerData.follower_count;
+        // Add follower count to each user
+        followerResponses.forEach((response, index) => {
+            forYou.data.UsersData[index].followers = response.data.FollowerData.follower_count;
         });
-    }catch(e){
+
+        if (logged) {
+            // Wait for all follow status responses
+            const followStatusResponses = await Promise.all(followStatusPromises);
+
+            // Add follow status to each user
+            followStatusResponses.forEach((response, index) => {
+                forYou.data.UsersData[index].isFollowed = response.data.IsFollower;
+            });
+        }
+
+    } catch (e) {
         console.log(e);
     }
-    let user
-if (logged){
-    try{
-        const userID = await axios.get(`${userIDByToken}/${token}`, {});
-        const userData = await axios.get(`${userDataUrl}/${userID.data.UserID}`, {});
-        user = userData.data.user
-    }catch(e){
-        console.log(e.data);
-    }
-}
     const data = {
         topics: response.data.resp.topics,
         logged: logged,
@@ -298,7 +326,6 @@ router.post('/register', async (req, res) => {
 router.get('/message', (req, res) => {
     res.render('message', { title: 'Message' });
 });
-
     
 //afficher un utilisateur par son id
 router.get('/user/:id', async (req, res) => {
@@ -310,7 +337,7 @@ router.get('/user/:id', async (req, res) => {
     const ownerUrl = 'http://localhost:8080/api/getTopicOwner';
     const likeUrl = 'http://localhost:8080/api/getLikeTopicNumber';
     const topicImgUrl = 'http://localhost:8080/api/getTopicImg';
-    const followUrl = 'http://localhost:8080/api/getFollowers';
+    const followerCountUrl = 'http://localhost:8080/api/getFollowers';
     const userFollowersUrl = `http://localhost:8080/api/getUserFollow/${userId}`;
     const userFollowingUrl = `http://localhost:8080/api/getUserFollowings/${userId}`;
     const token = req.cookies.token;
@@ -374,7 +401,7 @@ router.get('/user/:id', async (req, res) => {
         const users = forYouResponse.data.UsersData || [];
 
         // Create promises for fetching followers
-        const followerPromises = users.map(user => axios.get(`${followUrl}/${user.user_id}`));
+        const followerPromises = users.map(user => axios.get(`${followerCountUrl}/${user.user_id}`));
         const followerResponses = await Promise.all(followerPromises);
 
         // Merge follower data into users
@@ -447,7 +474,7 @@ router.get('/search', async (req, res) => {
     const likeUrl = 'http://localhost:8080/api/getLikeTopicNumber';
     const topicImgUrl = 'http://localhost:8080/api/getTopicImg'
     const randomUserUrl = 'http://localhost:8080/api/getRandomUser';
-    const followUrl = 'http://localhost:8080/api/getFollowers';
+    const followerCountUrl = 'http://localhost:8080/api/getFollowers';
     let user;
     if (logged) {
         try {
@@ -515,5 +542,44 @@ router.get('/search', async (req, res) => {
 
     res.render('search', {logged, user, topicsFound, messageFound });
 });
+
+router.get('/follow/:userIdToFollow/:loggedUserId', async (req, res) =>{
+    const token = req.cookies.token;
+    const logged = token !== undefined;
+    if (!logged){
+        res.redirect(`/login`);
+    }
+    const toFollowUserId = req.params.userIdToFollow;
+    const userId = req.params.loggedUserId;
+    const followThisUserUrl = `http://localhost:8080/api/follow/${userId}/${toFollowUserId}`;
+    if (logged){
+        try{
+            const result = await axios.get(`${followThisUserUrl}`, {});
+            console.log(result.data);
+        }catch(e){
+            console.log(e.data);
+        }
+    }
+});
+
+router.get('/unfollow/:userIdToFollow/:loggedUserId', async (req, res) =>{
+    const token = req.cookies.token;
+    const logged = token !== undefined;
+    if (!logged){
+        res.redirect(`/login`);
+    }
+    const toFollowUserId = req.params.userIdToFollow;
+    const userId = req.params.loggedUserId;
+    const unfollowThisUserUrl = `http://localhost:8080/api/unollow/${userId}/${toFollowUserId}`;
+    if (logged){
+        try{
+            const result = await axios.get(`${unfollowThisUserUrl}`, {});
+            console.log(result.data);
+        }catch(e){
+            console.log(e.data);
+        }
+    }
+});
+
 
 module.exports = router;

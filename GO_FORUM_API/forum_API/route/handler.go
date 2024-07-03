@@ -28,6 +28,7 @@ func RUN() {
 	r.HandleFunc("/api/getUserTopics/{id}", API.GetUserTopics).Methods("GET")
 	r.HandleFunc("/api/getUserFollowings/{id}", API.GetUsersFollowing).Methods("GET")
 	r.HandleFunc("/api/getUserFollow/{id}", API.GetUsersFollow).Methods("GET")
+	r.HandleFunc("/api/isFollowed/{myId}/{otherId}", API.IsFollower).Methods("GET")
 
 	// Admin
 	r.HandleFunc("/api/modifyTopic", API.ModifyTopicHandler).Methods("POST")
