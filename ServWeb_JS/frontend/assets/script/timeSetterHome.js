@@ -9,14 +9,45 @@
     const timeDifference = moment.duration(now.diff(creationMoment));
 
     let timeAgo = '';
-    if (timeDifference.asMinutes() < 60) {
+    switch (true) {
+    case timeDifference.asSeconds() < 60:
+        if (timeDifference.asSeconds() < 1) {
+        timeAgo = 'Just now';
+    }
+    timeAgo = `${Math.floor(timeDifference.asSeconds())} seconds ago`;
+    break;
+    case timeDifference.asMinutes() < 60:
+        if (timeDifference.asMinutes() < 2) {
+        timeAgo = '1 minute ago';
+    }
     timeAgo = `${Math.floor(timeDifference.asMinutes())} minutes ago`;
-} else if (timeDifference.asHours() < 24) {
+    break;
+    case timeDifference.asHours() < 24:
+        if (Math.floor(timeDifference.asHours()) < 2) {
+        timeAgo = '1 hour ago';
+    }
     timeAgo = `${Math.floor(timeDifference.asHours())} hours ago`;
-} else {
+    break;
+    case timeDifference.asDays() < 30:
+        if (timeDifference.asDays() < 2) {
+        timeAgo = '1 day ago';
+    }
     timeAgo = `${Math.floor(timeDifference.asDays())} days ago`;
-}
-
+    break;
+    case timeDifference.asMonths() < 12:
+        if (Math.floor(timeDifference.asMonths()) < 2) {
+        timeAgo = '1 month ago';
+    }
+    timeAgo = `${Math.floor(timeDifference.asMonths())} months ago`;
+    break;
+    default:
+        if (timeDifference.asYears() < 1) {
+        timeAgo = '1 year ago';
+    } else {
+    timeAgo = `${Math.floor(timeDifference.asYears())} years ago`;
+    break;
+    }
+    }
     post.querySelector('.post__date-time').innerText = timeAgo;
 });
 });
