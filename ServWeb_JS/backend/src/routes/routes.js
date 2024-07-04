@@ -585,6 +585,86 @@ router.post('/unfollow/:userIdToFollow/:loggedUserId', async (req, res) =>{
 
 
 });
+//afficher un topic par son id
+router.get('/topic/:id', async (req, res) => {
+    const topicId = req.params.id;
+    const url = `http://localhost:8080/api/getTopic/${topicId}`;
+    const TagUrl = 'http://localhost:8080/api/getTopicTag';
+    const ownerUrl = 'http://localhost:8080/api/getTopicOwner';
+    const likeUrl = 'http://localhost:8080/api/getLikeTopicNumber';
+    const topicImgUrl = 'http://localhost:8080/api/getTopicImg'
+    const followerCountUrl = 'http://localhost:8080/api/getFollowers';
+    const userIDByToken = 'http://localhost:8080/api/getUserIDByToken';
+    const userDataUrl = 'http://localhost:8080/api/getUser';
+    const isFollowedUrl ='http://localhost:8080/api/isFollowed'
+    const token = req.cookies.token;
+    const logged = token !== undefined;
+    let user
+    if (logged){
+        try{
+            const userID = await axios.get(`${userIDByToken}/${token}`, {});
+            const userData = await axios.get(`${userDataUrl}/${userID.data.UserID}`, {});
+            user = userData.data.user
+        }catch(e){
+            console.log(e.data);
+        }
+    }
+    let topic = {};
+    try {
+        const response = await axios.get(url);
+        topic = response.data.topic || {};
+    } catch (error) {
+        console.error('Error fetching topic data:', error);
+        return res.status(500).send('An error occurred while fetching topic data');
+    }
+
+    let tags = [];
+    try {
+        const tagResponse = await axios.get(`${TagUrl}/${topicId}`);
+        tags = tagResponse.data.data || [];
+    } catch (error) {
+        console.error('Error fetching topic tags:', error);
+    }
+
+    let owner = {};
+    try {
+        const ownerResponse = await axios.get(`${ownerUrl}/${topicId}`);
+        owner = ownerResponse.data.UserData || {};
+    } catch (error) {
+        console.error('Error fetching topic owner:', error);
+    }
+
+    let numberOfLike = 0;
+    try {
+        const likeResponse = await axios.get(`${likeUrl}/${topicId}`);
+        numberOfLike = likeResponse.data.NumberOfLike.like_count || 0;
+    } catch (error) {
+        console.error('Error fetching topic like count:', error);
+    }
+
+    let imgPath = '';
+    try {
+        const imgResponse = await axios.get(`${topicImgUrl}/${topicId}`);
+        imgPath = imgResponse.data.ImagePath || '';
+    } catch (error) {
+        console.error('Error fetching topic image path:', error);
+    }   
+});
+
+    //liking a topic
+router.post('/like/:topicId/:userId', async (req, res) => {
+    const topicId = req.params.topicId;
+    const userId = req.params.userId;
+    const likeUrl = `http://localhost:8080/api/likeTopic/${topicId}/${userId}`;
+    try {
+        const response = await axios.post(likeUrl, {});
+        res.status(200).send(response.data);
+    } catch (error) {
+        console.error('Error liking the topic:', error);
+        res.status(500).send('An error occurred while liking the topic');
+    }
+});
+//aficher les topics d'un tag
 
 
 module.exports = router;

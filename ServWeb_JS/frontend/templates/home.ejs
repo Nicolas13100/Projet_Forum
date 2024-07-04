@@ -260,7 +260,7 @@
   
                   <div class="comment_user">
                     <div class="img_user">
-                      <img src="/static/default-user.png" alt="User Picture" />
+                      <img src="../assets/default-user.png" alt="User Picture" />
                     </div>
                     <div class="comment_shared">
                       <div class="comment_info_user">
@@ -301,7 +301,7 @@
   
                     <div class="comment_user">
                       <div class="img_user">
-                        <img src="/static/default-user.png" alt="User Picture" />
+                        <img src="../assets/default-user.png" alt="User Picture" />
                       </div>
                       <div class="comment_shared">
                         <div class="comment_info_user">
@@ -329,7 +329,7 @@
   
                     <div class="comment_user">
                       <div class="img_user">
-                        <img src="/static/default-user.png" alt="User Picture" />
+                        <img src="../assets/default-user.png" alt="User Picture" />
                       </div>
                       <div class="comment_shared">
                         <div class="comment_info_user">
@@ -439,12 +439,12 @@
                                         .then(response => {
                                             // Handle success response
                                             console.log(response.data);
-                                            if (response.data.message) {
+                                            if (response.data.success) {
                                                 // Update button content and action based on the current action
-                                                if (action === 'follow' && response.data.message === "Success, correctly followed user") {
+                                                if (action === 'follow') {
                                                     this.textContent = 'Unfollow';
                                                     this.setAttribute('data-action', 'unfollow');
-                                                } else if (action === 'unfollow'&& response.data.message === 'Success, correctly unfollowed user') {
+                                                } else {
                                                     this.textContent = 'Follow';
                                                     this.setAttribute('data-action', 'follow');
                                                 }
