@@ -543,26 +543,27 @@ router.get('/search', async (req, res) => {
     res.render('search', {logged, user, topicsFound, messageFound });
 });
 
-router.get('/follow/:userIdToFollow/:loggedUserId', async (req, res) =>{
+router.post('/follow/:userIdToFollow/:loggedUserId', async (req, res) => {
     const token = req.cookies.token;
     const logged = token !== undefined;
-    if (!logged){
-        res.redirect(`/login`);
+    if (!logged) {
+        return res.redirect('/login');
     }
     const toFollowUserId = req.params.userIdToFollow;
     const userId = req.params.loggedUserId;
     const followThisUserUrl = `http://localhost:8080/api/follow/${userId}/${toFollowUserId}`;
-    if (logged){
-        try{
-            const result = await axios.get(`${followThisUserUrl}`, {});
-            console.log(result.data);
-        }catch(e){
-            console.log(e.data);
+    if (logged) {
+        try {
+            const result = await axios.post(followThisUserUrl, {});
+            res.json({ message: result.data.message }); // Sending the success response
+        } catch (e) {
+            console.error(e); // Log the error to the server console
+            res.status(500).json({ message: 'Failed to follow the user' }); // Sending an error response
         }
     }
 });
 
-router.get('/unfollow/:userIdToFollow/:loggedUserId', async (req, res) =>{
+router.post('/unfollow/:userIdToFollow/:loggedUserId', async (req, res) =>{
     const token = req.cookies.token;
     const logged = token !== undefined;
     if (!logged){
@@ -570,15 +571,19 @@ router.get('/unfollow/:userIdToFollow/:loggedUserId', async (req, res) =>{
     }
     const toFollowUserId = req.params.userIdToFollow;
     const userId = req.params.loggedUserId;
-    const unfollowThisUserUrl = `http://localhost:8080/api/unollow/${userId}/${toFollowUserId}`;
+    const unfollowThisUserUrl = `http://localhost:8080/api/unfollow/${userId}/${toFollowUserId}`;
     if (logged){
         try{
-            const result = await axios.get(`${unfollowThisUserUrl}`, {});
-            console.log(result.data);
+            const result = await axios.delete(`${unfollowThisUserUrl}`, {});
+            // console.log(result.data.message);
+            res.json({ message: result.data.message }); // Sending the success response
         }catch(e){
             console.log(e.data);
+            res.status(500).json({ message: 'Failed to follow the user' }); // Sending an error response
         }
     }
+
+
 });
 
 

@@ -199,22 +199,101 @@ func IsFollower(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var following bool
+	following := false
+	var queryReturn string
 	err := db.QueryRow(`
         SELECT COUNT(*)
         FROM followUser
         WHERE follower_id = ? AND user_id = ?
-    `, userID, otherID).Scan(&following)
+    `, userID, otherID).Scan(&queryReturn)
 	if err != nil {
 		log.Printf("Error querying database: %v", err)
 		sendResponse(w, APIResponse{Status: http.StatusInternalServerError, Message: "Internal Server Error"})
 		return
+	}
+	if queryReturn == "1" {
+		following = true
 	}
 	// Prepare response with the follower count
 	response := APIResponse{
 		Status:     http.StatusOK,
 		Message:    "Success",
 		IsFollower: following,
+	}
+	sendResponse(w, response)
+}
+
+func FollowUser(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		sendResponse(w, APIResponse{Status: http.StatusMethodNotAllowed, Message: "Method not allowed"})
+		return
+	}
+
+	// Extract user_id from URL parameter
+	vars := mux.Vars(r)
+	userID := vars["userId"]
+	toFollowID := vars["toFollowUserId"]
+
+	if userID == "" {
+		sendResponse(w, APIResponse{Status: http.StatusBadRequest, Message: "Missing user.user_id parameter"})
+		return
+	}
+	if toFollowID == "" {
+		sendResponse(w, APIResponse{Status: http.StatusBadRequest, Message: "Missing to follow user_id parameter"})
+		return
+	}
+
+	// Perform the insert operation
+	_, err := db.Exec(`
+        INSERT INTO followUser (user_id, follower_id, followed_date) VALUES (?, ?, NOW())
+    `, toFollowID, userID)
+	if err != nil {
+		log.Printf("Error executing database query: %v", err)
+		sendResponse(w, APIResponse{Status: http.StatusInternalServerError, Message: "Internal Server Error"})
+		return
+	}
+
+	// Prepare response with the follower count
+	response := APIResponse{
+		Status:  http.StatusOK,
+		Message: "Success, correctly followed user",
+	}
+	sendResponse(w, response)
+}
+
+func UnfollowUser(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		sendResponse(w, APIResponse{Status: http.StatusMethodNotAllowed, Message: "Method not allowed"})
+		return
+	}
+
+	// Extract user_id from URL parameter
+	vars := mux.Vars(r)
+	userID := vars["userId"]
+	toFollowID := vars["toFollowUserId"]
+	if userID == "" {
+		sendResponse(w, APIResponse{Status: http.StatusBadRequest, Message: "Missing user.user_id parameter"})
+		return
+	}
+	if toFollowID == "" {
+		sendResponse(w, APIResponse{Status: http.StatusBadRequest, Message: "Missing to follow user_id parameter"})
+		return
+	}
+
+	// Perform the delete operation
+	_, err := db.Exec(`
+        DELETE FROM followUser WHERE user_id = ? AND follower_id = ?
+    `, toFollowID, userID)
+	if err != nil {
+		log.Printf("Error executing database query: %v", err)
+		sendResponse(w, APIResponse{Status: http.StatusInternalServerError, Message: "Internal Server Error"})
+		return
+	}
+
+	// Prepare response
+	response := APIResponse{
+		Status:  http.StatusOK,
+		Message: "Success, correctly unfollowed user",
 	}
 	sendResponse(w, response)
 }

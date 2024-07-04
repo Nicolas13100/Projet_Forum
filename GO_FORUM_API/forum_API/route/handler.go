@@ -29,6 +29,8 @@ func RUN() {
 	r.HandleFunc("/api/getUserFollowings/{id}", API.GetUsersFollowing).Methods("GET")
 	r.HandleFunc("/api/getUserFollow/{id}", API.GetUsersFollow).Methods("GET")
 	r.HandleFunc("/api/isFollowed/{myId}/{otherId}", API.IsFollower).Methods("GET")
+	r.HandleFunc("/api/follow/{userId}/{toFollowUserId}", API.FollowUser).Methods("POST")
+	r.HandleFunc("/api/unfollow/{userId}/{toFollowUserId}", API.UnfollowUser).Methods("DELETE")
 
 	// Admin
 	r.HandleFunc("/api/modifyTopic", API.ModifyTopicHandler).Methods("POST")
