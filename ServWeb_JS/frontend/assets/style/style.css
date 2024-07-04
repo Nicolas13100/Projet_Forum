@@ -26,6 +26,10 @@ a {
   text-decoration: none;
   outline: none;
 }
+.like-button.liked .like-icon {
+  fill: red;
+  stroke: red;
+}
 
 /* Vars */
 :root {
