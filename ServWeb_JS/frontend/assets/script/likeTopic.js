@@ -17,14 +17,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
 
                 if (response.ok) {
-                    this.classList.toggle('liked');
+                    this.classList.toggle('liked'); // Toggle the 'liked' class
                     if (this.classList.contains('liked')) {
                         this.querySelector('svg').style.fill = 'red';
                     } else {
                         this.querySelector('svg').style.fill = '';
                     }
                 } else {
-                    console.error('Failed to like/dislike the topic');
+                    console.error('Failed to like/dislike the topic', response.statusText);
                 }
             } catch (error) {
                 console.error('An error occurred', error);
