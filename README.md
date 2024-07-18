@@ -34,6 +34,7 @@ Assurez-vous d'avoir les logiciels suivants installés :
      ```sql
      CREATE DATABASE forum_cinema;
      ```
+     - Copier dans la console sql de php my admin executer le contenu du fichier database.sql en premier puis le fichier fake_data.sql
    - Créez un utilisateur et accordez-lui les droits nécessaires :
      ```sql
      CREATE USER 'forum_user'@'localhost' IDENTIFIED BY 'password';
