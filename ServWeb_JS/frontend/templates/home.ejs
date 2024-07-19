@@ -38,7 +38,7 @@
         </div>
 
         <div class="header__search">
-            <form id="search-form"  class="search-form" action="/search" method="GET">
+            <form id="search-form" class="search-form" action="/search" method="GET">
                 <input type="text" id="search-input" name="query" placeholder="Search" required/>
                 <button type="submit" id="search-button" title="search">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -108,25 +108,25 @@
                             fill="var(--text-dark)"/>
                 </svg>
             </a>
-              <% if (logged) { %>
-            <a href="/user/<%= user.user_id %>">
-                <button class="profile-button" title="My Profil">
-                    <div class="profile-button__border"></div>
-                    <div class="profile-button__picture">
-                        <img src="<%= user.profile_pic %>" alt="<%= user.username %>"/>
-                    </div>
-                </button>
-            </a>
-       <% }else{ %>
-            <a href="/login" title="Login">
-                <button class="profile-button" title="Login">
-                    <div class="profile-button__border"></div>
-                    <div class="profile-button__picture">
-                        <img src="/static/default-user.png" alt="User Picture"/>
-                    </div>
-                </button>
-            </a>
-        <% } %>
+            <% if (logged) { %>
+                <a href="/user/<%= user.user_id %>">
+                    <button class="profile-button" title="My Profil">
+                        <div class="profile-button__border"></div>
+                        <div class="profile-button__picture">
+                            <img src="<%= user.profile_pic %>" alt="<%= user.username %>"/>
+                        </div>
+                    </button>
+                </a>
+            <% }else{ %>
+                <a href="/login" title="Login">
+                    <button class="profile-button" title="Login">
+                        <div class="profile-button__border"></div>
+                        <div class="profile-button__picture">
+                            <img src="/static/default-user.png" alt="User Picture"/>
+                        </div>
+                    </button>
+                </a>
+            <% } %>
         </div>
 
     </nav>
@@ -148,7 +148,7 @@
                 <% } else { %>
                     <% topics.forEach(topic=> { %>
                         <%#!--------------------- PROPERTY OF TOPICS--------------- --%>
-                            <article class="post" data-creation-date="<%= topic.creation_date %>">
+                        <article class="post" data-creation-date="<%= topic.creation_date %>">
                             <div class="post__header">
                                 <div class="post__profile">
                               <span>
@@ -176,7 +176,7 @@
                                     </div>
                                 <% } %>
                                 <div class="post-text">
-                                        <p><%= topic.body %></p>
+                                    <p><%= topic.body %></p>
                                 </div>
 
                                 <%#!-- TAGS POST--------------- --%>
@@ -231,12 +231,12 @@
                                 <%#!-- LIKES -react p--------------- --%>
                                 <div class="post__infos">
                                     <div class="post__likes">
-                                <span>Liked by <%= topic.numberOfLike %> kokos</span>
+                                        <span>Liked by <%= topic.numberOfLike %> kokos</span>
                                     </div>
-
                                     <div class="post__description">
                                         <% if(topic.owner.profile_pic) { %>
-                                            <a href="/user/<%= topic.owner.user_id %>" target="_blank" class="post__avatar">
+                                            <a href="/user/<%= topic.owner.user_id %>" target="_blank"
+                                               class="post__avatar">
                                                 <img src="<%= topic.owner.profile_pic %>" alt="User Picture"/>
                                             </a>
                                         <% } else { %>
@@ -251,316 +251,248 @@
                                     <span class="post__date-time">30 minutes ago</span>
                                 </div>
                             </div>
-          <%#--SECTION COMMENTAIRE--%>
-            <%#--SECTION COMMENTAIRE--%>
-            <div class="comment_section" style="display: none;">
-                <h1 class="hidden_comment">X</h1>
-  
-                <div class="allComments">
-  
-                  <div class="comment_user">
-                    <div class="img_user">
-                      <img src="../assets/default-user.png" alt="User Picture" />
-                    </div>
-                    <div class="comment_shared">
-                      <div class="comment_info_user">
-                        <div class="comment_user_name">
-                          <a href="#">nicolas@68</a>
-                        </div>
-                      </div>
-                      <div class="commnent_text">
-                        <p> je l'ai vu ce film mais j'ai pas vraiment aimé le déroulé trop simple à mon gout
-                          mais je suis content que tu l'ai apprécié.
-                          je te conseille de regarder "The Notebook" un film romantique q.
-                        </p>
-                        <div class="reply_comment">
-                          <button class="reply_btn">Reply</button>
-                      </div>
-  
-                      </div>
-  
-                      <div class="comment_time">
-                        <span>14 hours ago</span>
-                      </div>
-                   
-                      <div class="reply_form" style="display: none;">
-                          <form action="/commentPost" method="post">
-                            <input type="text" name="comment" placeholder=" Laissez un Commentaire">
-                            <button type="submit" class="submit_btn_2" title="share">
-                              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path fill-rule="evenodd" clip-rule="evenodd"
-                                  d="M22.8555 3.44542C22.6978 3.16703 22.3962 3 22.0714 3L2.91369 3.01392C2.52859 3.01392 2.19453 3.25055 2.05997 3.60781C1.96254 3.86764 1.98574 4.14603 2.11565 4.37338C2.16669 4.45689 2.23165 4.53577 2.31052 4.60537L9.69243 10.9712L11.4927 20.5338C11.5623 20.9096 11.8499 21.188 12.2304 21.2483C12.6062 21.3086 12.9774 21.1323 13.1723 20.8029L22.8509 4.35018C23.0179 4.06715 23.0179 3.72381 22.8555 3.44542ZM4.21748 4.39194H19.8164L10.4255 9.75089L4.21748 4.39194ZM12.6248 18.9841L11.1122 10.948L20.5171 5.58436L12.6248 18.9841Z"
-                                  fill="var(--text-dark)" stroke="var(--text-dark)" stroke-width="0.3" />
-                              </svg>
-                            </button>
-                          </form>
-                        </div>
-                    </div>
-  
-                    </div>
-  
-                    <div class="comment_user">
-                      <div class="img_user">
-                        <img src="../assets/default-user.png" alt="User Picture" />
-                      </div>
-                      <div class="comment_shared">
-                        <div class="comment_info_user">
-                          <div class="comment_user_name">
-                            <a href="#">marin@45</a>
-                          </div>
-                        </div>
-                        <div class="commnent_text">
-                          <p> je l'ai vu ce film mais j'ai pas vraiment aimé le déroulé trop simple à mon gout
-                            mais je suis content que tu l'ai apprécié.
-                            je te conseille de regarder "The Notebook" un film romantique q.
-                          </p>
-                          <div class="reply_comment">
-                            <button class="reply_btn">Reply</button>
-                        </div>
-    
-                        </div>
-    
-                        <div class="comment_time">
-                          <span>14 hours ago</span>
-                        </div>
-                      </div>
-    
-                      </div>
-  
-                    <div class="comment_user">
-                      <div class="img_user">
-                        <img src="../assets/default-user.png" alt="User Picture" />
-                      </div>
-                      <div class="comment_shared">
-                        <div class="comment_info_user">
-                          <div class="comment_user_name">
-                            <a href="#">nicolas@68</a>
-                          </div>
-                        </div>
-                        <div class="commnent_text">
-                          <p> je l'ai vu ce film mais j'ai pas vraiment aimé le déroulé trop simple à mon gout
-                            mais je suis content que tu l'ai apprécié.
-                            je te conseille de regarder "The Notebook" un film romantique 
-                            Lorem ipsum dolor sit amet consectetur adipisicing elit. Sunt assumenda commodi ad? In, eligendi numquam quae omnis est impedit minus perspiciatis magnam. Vitae itaque consequatur mollitia, porro et eum
-                          </p>
-                          <div class="reply_comment">
-                            <button class="reply_btn">Reply</button>
-                        </div>
-  
-                        </div>
-    
-                        <div class="comment_time">
-                          <span>17 hours ago</span>
-                        </div>
-                       
-                      </div>
-    
-                      </div>
-                    
-                       
-                    <!--repondre a un commentaire ajoutez un bouton reply lorqu'il clique dessus cela affiche le formulaire de reponse-->
-                  </div>
-  
-                <!--LAISSER UN  COMMENTAIRE  SOI MEME-->
-                <div class="own_comment comment_div">
-                  <form action="/commentPost" method="post">
-                    <input type="text" name="comment" id="commentInput" placeholder=" Laissez un Commentaire">
-                    <button type="submit" class="submit_btn" title="share">
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path fill-rule="evenodd" clip-rule="evenodd"
-                          d="M22.8555 3.44542C22.6978 3.16703 22.3962 3 22.0714 3L2.91369 3.01392C2.52859 3.01392 2.19453 3.25055 2.05997 3.60781C1.96254 3.86764 1.98574 4.14603 2.11565 4.37338C2.16669 4.45689 2.23165 4.53577 2.31052 4.60537L9.69243 10.9712L11.4927 20.5338C11.5623 20.9096 11.8499 21.188 12.2304 21.2483C12.6062 21.3086 12.9774 21.1323 13.1723 20.8029L22.8509 4.35018C23.0179 4.06715 23.0179 3.72381 22.8555 3.44542ZM4.21748 4.39194H19.8164L10.4255 9.75089L4.21748 4.39194ZM12.6248 18.9841L11.1122 10.948L20.5171 5.58436L12.6248 18.9841Z"
-                          fill="var(--text-dark)" stroke="var(--text-dark)" stroke-width="0.3" />
-                      </svg>
-                    </button>
-                  </form>
-                </div>
-              </div>
+                            <!-- SECTION COMMENTAIRE -->
+                            <div class="comment_section">
+                                <h1 class="hidden_comment">X</h1>
+
+                                <% if (topic.messages && topic.messages.length > 0) { %>
+                                    <div class="allComments">
+                                        <% topic.messages.forEach(function(message) { %>
+                                            <div class="comment_user">
+                                                <div class="img_user">
+                                                    <% if(message.ProfilePic) { %>
+                                                        <img src="<%= message.ProfilePic %>" alt="User Picture"/>
+                                                    <% } else { %>
+                                                        <img src="/static/default-user.png" alt="Default User Picture"/>
+                                                    <% } %>
+                                                </div>
+                                                <div class="comment_shared">
+                                                    <div class="comment_info_user">
+                                                        <div class="comment_user_name">
+                                                            <a href="/user/<%= message.user_id %>"
+                                                               target="_blank"><%= message.Username %></a>
+                                                        </div>
+                                                    </div>
+                                                    <div class="comment_text">
+                                                        <p><%= message.body %></p>
+                                                        <div class="reply_comment">
+                                                            <button class="reply_btn">Reply</button>
+                                                        </div>
+                                                    </div>
+                                                    <div class="comment_time">
+                                                        <span><%= new Date(message.date_sent).toLocaleString() %></span>
+                                                    </div>
+                                                    <div class="reply_form" style="display: none;">
+                                                        <form action="/commentPost" method="post">
+                                                            <input type="text" name="comment"
+                                                                   placeholder="Laissez un Commentaire">
+                                                            <button type="submit" class="submit_btn_2" title="share">
+                                                                <svg width="24" height="24" viewBox="0 0 24 24"
+                                                                     fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                    <path fill-rule="evenodd" clip-rule="evenodd"
+                                                                          d="M22.8555 3.44542C22.6978 3.16703 22.3962 3 22.0714 3L2.91369 3.01392C2.52859 3.01392 2.19453 3.25055 2.05997 3.60781C1.96254 3.86764 1.98574 4.14603 2.11565 4.37338C2.16669 4.45689 2.23165 4.53577 2.31052 4.60537L9.69243 10.9712L11.4927 20.5338C11.5623 20.9096 11.8499 21.188 12.2304 21.2483C12.6062 21.3086 12.9774 21.1323 13.1723 20.8029L22.8509 4.35018C23.0179 4.06715 23.0179 3.72381 22.8555 3.44542ZM4.21748 4.39194H19.8164L10.4255 9.75089L4.21748 4.39194ZM12.6248 18.9841L11.1122 10.948L20.5171 5.58436L12.6248 18.9841Z"
+                                                                          fill="var(--text-dark)"
+                                                                          stroke="var(--text-dark)" stroke-width="0.3"/>
+                                                                </svg>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        <% }); %>
+                                    </div>
+                                <% } else { %>
+                                    <p class="no-comments">Be the first to comment!</p>
+                                <% } %>
+                            </div>
 
                         </article>
                     <% }); %>
                 <% } %>
             </div>
-          </div>
+        </div>
 
-            <section class="side-menu">
-                <% if (logged) { %>
-                    <div class="side-menu__user-profile">
-                        <a href="/user/<%= user.user_id %>" target="_blank" class="side-menu__user-avatar">
-                            <img src="<%= user.profile_pic %>" class="product-imagePath" alt="<%= user.username %>">
-                        </a>
-                        <div class="side-menu__user-info">
-                            <a href="/user/<%= user.user_id %>" target="_blank">
+        <section class="side-menu">
+            <% if (logged) { %>
+                <div class="side-menu__user-profile">
+                    <a href="/user/<%= user.user_id %>" target="_blank" class="side-menu__user-avatar">
+                        <img src="<%= user.profile_pic %>" class="product-imagePath" alt="<%= user.username %>">
+                    </a>
+                    <div class="side-menu__user-info">
+                        <a href="/user/<%= user.user_id %>" target="_blank">
                             <span><%= user.username %></span>
+                        </a>
+                    </div>
+                    <a href="/logout">
+                        <button class="side-menu__user-button">Switch account</button>
+                    </a>
+                </div>
+            <% } %>
+
+            <div class="side-menu__suggestions-section">
+                <div class="side-menu__suggestions-header">
+                    <h2>Suggestions for You</h2>
+                    <button>See All</button>
+                </div>
+                <div class="side-menu__suggestions-content">
+                    <% for (let user of forYou) { %>
+                        <div class="side-menu__suggestion">
+                            <a href="/user/<%= user.user_id %>" class="side-menu__suggestion-avatar">
+                                <img src="<%= user.profile_pic %>" alt="User Picture"/>
                             </a>
-                        </div>
-                        <a href="/logout"><button class="side-menu__user-button">Switch account</button></a>
-                    </div>
-                <% } %>
-
-                <div class="side-menu__suggestions-section">
-                    <div class="side-menu__suggestions-header">
-                        <h2>Suggestions for You</h2>
-                        <button>See All</button>
-                    </div>
-                    <div class="side-menu__suggestions-content">
-                        <% for (let user of forYou) { %>
-                            <div class="side-menu__suggestion">
-                                <a href="/user/<%= user.user_id %>" class="side-menu__suggestion-avatar">
-                                    <img src="<%= user.profile_pic %>" alt="User Picture"/>
-                                </a>
-                                <div class="side-menu__suggestion-info">
-                                    <a href="/user/<%= user.user_id %>"><%= user.username %></a>
-                                    <span>Followed by <%= user.followers %> koko</span>
-                                </div>
-                                <button class="side-menu__suggestion-button"
-                                        data-user-id="<%= user.user_id %>"
-                                        data-action="<%= user.isFollowed ? 'unfollow' : 'follow' %>">
-                                    <%= user.isFollowed ? 'Unfollow' : 'Follow' %>
-                                </button>
+                            <div class="side-menu__suggestion-info">
+                                <a href="/user/<%= user.user_id %>"><%= user.username %></a>
+                                <span>Followed by <%= user.followers %> koko</span>
                             </div>
-                        <% } %>
-                    </div>
-                    <script>
-                        document.addEventListener('DOMContentLoaded', function () {
-                            const followButtons = document.querySelectorAll('.side-menu__suggestion-button');
+                            <button class="side-menu__suggestion-button"
+                                    data-user-id="<%= user.user_id %>"
+                                    data-action="<%= user.isFollowed ? 'unfollow' : 'follow' %>">
+                                <%= user.isFollowed ? 'Unfollow' : 'Follow' %>
+                            </button>
+                        </div>
+                    <% } %>
+                </div>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        const followButtons = document.querySelectorAll('.side-menu__suggestion-button');
 
-                            followButtons.forEach(button => {
-                                button.addEventListener('click', function () {
-                                    const userIdToFollow = this.getAttribute('data-user-id');
-                                    const action = this.getAttribute('data-action');
+                        followButtons.forEach(button => {
+                            button.addEventListener('click', function () {
+                                const userIdToFollow = this.getAttribute('data-user-id');
+                                const action = this.getAttribute('data-action');
 
-                                    <% if (logged) { %>
-                                    const loggedUserId = '<%= user.user_id %>';
+                                <% if (logged) { %>
+                                const loggedUserId = '<%= user.user_id %>';
 
-                                    // Define the URL based on the action (follow or unfollow)
-                                    const url = action === 'follow' ? `/follow/${userIdToFollow}/${loggedUserId}` : `/unfollow/${userIdToFollow}/${loggedUserId}`;
+                                // Define the URL based on the action (follow or unfollow)
+                                const url = action === 'follow' ? `/follow/${userIdToFollow}/${loggedUserId}` : `/unfollow/${userIdToFollow}/${loggedUserId}`;
 
-                                    axios.post(url)
-                                        .then(response => {
-                                            // Handle success response
-                                            console.log(response.data);
-                                            if (response.data.success) {
-                                                // Update button content and action based on the current action
-                                                if (action === 'follow') {
-                                                    this.textContent = 'Unfollow';
-                                                    this.setAttribute('data-action', 'unfollow');
-                                                } else {
-                                                    this.textContent = 'Follow';
-                                                    this.setAttribute('data-action', 'follow');
-                                                }
+                                axios.post(url)
+                                    .then(response => {
+                                        // Handle success response
+                                        console.log(response.data);
+                                        if (response.data.success) {
+                                            // Update button content and action based on the current action
+                                            if (action === 'follow') {
+                                                this.textContent = 'Unfollow';
+                                                this.setAttribute('data-action', 'unfollow');
+                                            } else {
+                                                this.textContent = 'Follow';
+                                                this.setAttribute('data-action', 'follow');
                                             }
-                                        })
-                                        .catch(error => {
-                                            // Handle error response
-                                            console.error('Error during follow/unfollow action:', error);
-                                        });
-                                    <% } else { %>
-                                    window.location.href = '/login';
-                                    <% } %>
-                                });
+                                        }
+                                    })
+                                    .catch(error => {
+                                        // Handle error response
+                                        console.error('Error during follow/unfollow action:', error);
+                                    });
+                                <% } else { %>
+                                window.location.href = '/login';
+                                <% } %>
                             });
                         });
-                    </script>
+                    });
+                </script>
+            </div>
+
+            <div class="side-menu__footer">
+                <div class="side-menu__footer-links">
+                    <ul class="side-menu__footer-list">
+                        <li class="side-menu__footer-item">
+                            <a class="side-menu__footer-link" href="#">About</a>
+                        </li>
+                        <li class="side-menu__footer-item">
+                            <a class="side-menu__footer-link" href="#">Help</a>
+                        </li>
+                        <li class="side-menu__footer-item">
+                            <a class="side-menu__footer-link" href="#">Privacy</a>
+                        </li>
+                        <li class="side-menu__footer-item">
+                            <a class="side-menu__footer-link" href="#">Hashtag</a>
+                        </li>
+                        <li class="side-menu__footer-item">
+                            <a class="side-menu__footer-link" href="#">Language</a>
+                        </li>
+                    </ul>
                 </div>
 
-                <div class="side-menu__footer">
-                    <div class="side-menu__footer-links">
-                        <ul class="side-menu__footer-list">
-                            <li class="side-menu__footer-item">
-                                <a class="side-menu__footer-link" href="#">About</a>
-                            </li>
-                            <li class="side-menu__footer-item">
-                                <a class="side-menu__footer-link" href="#">Help</a>
-                            </li>
-                            <li class="side-menu__footer-item">
-                                <a class="side-menu__footer-link" href="#">Privacy</a>
-                            </li>
-                            <li class="side-menu__footer-item">
-                                <a class="side-menu__footer-link" href="#">Hashtag</a>
-                            </li>
-                            <li class="side-menu__footer-item">
-                                <a class="side-menu__footer-link" href="#">Language</a>
-                            </li>
-                        </ul>
-                    </div>
+                <span class="side-menu__footer-copyright">&copy; 2024 kokGoat FORUM</span>
+            </div>
+        </section>
 
-                    <span class="side-menu__footer-copyright">&copy; 2024 kokGoat FORUM</span>
-                </div>
-            </section>
-        
     </section>
 </main>
 
 <nav class="navbar">
     <a href="/home" class="navbar__button" title="home">
-      <svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M2.45307 11.751L11.9773 2.02175L21.5015 11.751C21.7906 12.0463 21.9545 12.4468 21.9545 12.8711V20.4556C21.9545 20.7747 21.7037 21 21.4427 21H15.964C15.713 21 15.4721 20.7849 15.4721 20.476V15.8886C15.4721 13.9497 13.9267 12.34 11.9773 12.34C10.0279 12.34 8.48244 13.9497 8.48244 15.8886V20.476C8.48244 20.7849 8.24157 21 7.99053 21H2.51187C2.25085 21 2 20.7747 2 20.4556V12.8711C2 12.4468 2.16397 12.0463 2.45307 11.751Z"
-          stroke="var(--text-dark)"
-          stroke-width="2"
-        />
-      </svg>
+        <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+        >
+            <path
+                    d="M2.45307 11.751L11.9773 2.02175L21.5015 11.751C21.7906 12.0463 21.9545 12.4468 21.9545 12.8711V20.4556C21.9545 20.7747 21.7037 21 21.4427 21H15.964C15.713 21 15.4721 20.7849 15.4721 20.476V15.8886C15.4721 13.9497 13.9267 12.34 11.9773 12.34C10.0279 12.34 8.48244 13.9497 8.48244 15.8886V20.476C8.48244 20.7849 8.24157 21 7.99053 21H2.51187C2.25085 21 2 20.7747 2 20.4556V12.8711C2 12.4468 2.16397 12.0463 2.45307 11.751Z"
+                    stroke="var(--text-dark)"
+                    stroke-width="2"
+            />
+        </svg>
     </a>
-    
+
     <a href="/createTopic" class="navbar__button" title="create topic">
-      <svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <rect
-          x="3"
-          y="3"
-          width="18"
-          height="18"
-          rx="5"
-          stroke="var(--text-dark)"
-          stroke-width="1.8"
-        />
-        <line
-          x1="12.1"
-          y1="6.9"
-          x2="12.1"
-          y2="17.1"
-          stroke="var(--text-dark)"
-          stroke-width="1.8"
-          stroke-linecap="round"
-        />
-        <line
-          x1="6.9"
-          y1="11.8"
-          x2="17.1"
-          y2="11.8"
-          stroke="var(--text-dark)"
-          stroke-width="1.8"
-          stroke-linecap="round"
-        />
-      </svg>
+        <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+        >
+            <rect
+                    x="3"
+                    y="3"
+                    width="18"
+                    height="18"
+                    rx="5"
+                    stroke="var(--text-dark)"
+                    stroke-width="1.8"
+            />
+            <line
+                    x1="12.1"
+                    y1="6.9"
+                    x2="12.1"
+                    y2="17.1"
+                    stroke="var(--text-dark)"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+            />
+            <line
+                    x1="6.9"
+                    y1="11.8"
+                    x2="17.1"
+                    y2="11.8"
+                    stroke="var(--text-dark)"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+            />
+        </svg>
     </a>
-    
-    <button class="navbar__button profile-button" >
-      <div class="profile-button__border"></div>
-      <div class="profile-button__picture">
-        <% if (logged) { %>
-            <a href="/user/<%= user.user_id %>">
-        <img src="<%= user.profile_pic %>" alt="<%= user.username %>"/>
-            </a>
-        <% } else { %>
-        <a href="/login">
-        <img src="/static/default-user.png" alt="User Picture" />
-        </a>
-        <% } %>
-      </div>
+
+    <button class="navbar__button profile-button">
+        <div class="profile-button__border"></div>
+        <div class="profile-button__picture">
+            <% if (logged) { %>
+                <a href="/user/<%= user.user_id %>">
+                    <img src="<%= user.profile_pic %>" alt="<%= user.username %>"/>
+                </a>
+            <% } else { %>
+                <a href="/login">
+                    <img src="/static/default-user.png" alt="User Picture"/>
+                </a>
+            <% } %>
+        </div>
     </button>
-  </nav>
+</nav>
 
 </body>
 

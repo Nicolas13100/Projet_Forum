@@ -15,19 +15,19 @@ const storage = multer.diskStorage({
     }
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({storage: storage});
 
 router.get('/', (req, res) => {
     res.redirect('/home');
 });
 
 router.get('/category', (req, res) => {
-    res.render('category', { title: 'Category' });
+    res.render('category', {title: 'Category'});
 });
 
 router.get('/createTopic', (req, res) => {
 
-    res.render('createTopic', { title: 'CreateTopic' });
+    res.render('createTopic', {title: 'CreateTopic'});
 });
 
 router.post('/createTopic', upload.single('image'), async (req, res) => {
@@ -47,7 +47,7 @@ router.post('/createTopic', upload.single('image'), async (req, res) => {
         return res.status(500).send('Error fetching user ID');
     }
 
-    const { title, description, categories } = req.body;
+    const {title, description, categories} = req.body;
     const imagePath = req.file ? `/static/images/TopicsImg/${req.file.filename}` : null;
 
     try {
@@ -60,8 +60,8 @@ router.post('/createTopic', upload.single('image'), async (req, res) => {
             userID
         });
 
-         const topicID = response.data.topic_id;
-         res.redirect(`/topic/${topicID}`);
+        const topicID = response.data.topic_id;
+        res.redirect(`/topic/${topicID}`);
     } catch (err) {
         console.error(err);
         res.status(500).send('Error creating topic');
@@ -78,7 +78,8 @@ router.get('/home', async (req, res) => {
     const followerCountUrl = 'http://localhost:8080/api/getFollowers';
     const userIDByToken = 'http://localhost:8080/api/getUserIDByToken';
     const userDataUrl = 'http://localhost:8080/api/getUser';
-    const isFollowedUrl ='http://localhost:8080/api/isFollowed'
+    const isFollowedUrl = 'http://localhost:8080/api/isFollowed'
+    const topicMessagesUrl = 'http://localhost:8080/api/getTopicMessages';
     const token = req.cookies.token;
     const logged = token !== undefined;
     let response;
@@ -89,8 +90,9 @@ router.get('/home', async (req, res) => {
         // Arrays to store promises for fetching tag and owner data
         const tagPromises = [];
         const ownerPromises = [];
-        const numberOfLikePromises =[];
-        const topicImgPromises =[];
+        const numberOfLikePromises = [];
+        const topicImgPromises = [];
+        const messagesPromises = [];
 
         // Iterate through topics and create promises for fetching tag and owner data
         for (const topic of response.data.resp.topics) {
@@ -100,20 +102,24 @@ router.get('/home', async (req, res) => {
             const fetchTagPromise = axios.get(`${TagUrl}/${topic_id}`);
             const fetchOwnerPromise = axios.get(`${ownerUrl}/${topic_id}`);
             const fetchNumberOfLikePromise = axios.get(`${likeUrl}/${topic_id}`);
-            const fetchTopicImgPromise=axios.get(`${topicImgUrl}/${topic_id}`)
+            const fetchTopicImgPromise = axios.get(`${topicImgUrl}/${topic_id}`)
+            const fetchTopicMessagesPromise = axios.get(`${topicMessagesUrl}/${topic_id}`);
 
             // Store the promises
             tagPromises.push(fetchTagPromise);
             ownerPromises.push(fetchOwnerPromise);
             numberOfLikePromises.push(fetchNumberOfLikePromise);
             topicImgPromises.push(fetchTopicImgPromise)
+            messagesPromises.push(fetchTopicMessagesPromise)
+
         }
 
         // Wait for all tag and owner data requests to resolve
         const tagResponses = await Promise.all(tagPromises);
         const ownerResponses = await Promise.all(ownerPromises);
         const numberOfLikeResponses = await Promise.all(numberOfLikePromises)
-        const topicImgResponses=await Promise.all(topicImgPromises)
+        const topicImgResponses = await Promise.all(topicImgPromises)
+        const messagesResponses = await Promise.all(messagesPromises);
 
         // Merge tag and owner data into respective topics
         tagResponses.forEach((tagResponse, index) => {
@@ -125,12 +131,16 @@ router.get('/home', async (req, res) => {
         });
 
         numberOfLikeResponses.forEach((likeResponse, index) => {
-           response.data.resp.topics[index].numberOfLike = likeResponse.data.NumberOfLike.like_count;
+            response.data.resp.topics[index].numberOfLike = likeResponse.data.NumberOfLike.like_count;
         })
 
         topicImgResponses.forEach((imgResponse, index) => {
             response.data.resp.topics[index].imgPath = imgResponse.data.ImagePath;
         })
+        messagesResponses.forEach((messagesResponse, index) => {
+            response.data.resp.topics[index].messages = messagesResponse.data.TopicMessages;
+        })
+
 
     } catch (error) {
         console.log(error);
@@ -138,13 +148,13 @@ router.get('/home', async (req, res) => {
 
 
     let user
-    if (logged){
-        try{
+    if (logged) {
+        try {
             const userID = await axios.get(`${userIDByToken}/${token}`, {});
             const userData = await axios.get(`${userDataUrl}/${userID.data.UserID}`, {});
             user = userData.data.user
-        }catch(e){
-        console.log(e.data);
+        } catch (e) {
+            console.log(e.data);
         }
     }
 
@@ -195,14 +205,14 @@ router.get('/home', async (req, res) => {
         topics: response.data.resp.topics,
         logged: logged,
         user: user,
-        forYou : forYou.data.UsersData
+        forYou: forYou.data.UsersData
     };
 
     res.render('home', data);
 });
 
 router.get('/login', (req, res) => {
-    res.render('login', { messageLogin: null, messageRegister : null });
+    res.render('login', {messageLogin: null, messageRegister: null});
 });
 
 router.get('/logout', async (req, res) => {
@@ -236,7 +246,7 @@ router.get('/logout', async (req, res) => {
 
 // POST route to handle form submission
 router.post('/loginUser', async (req, res) => {
-    const { username, password } = req.body;
+    const {username, password} = req.body;
 
     // Axios POST request to another server (http://localhost:8080/api/login)
     const url = 'http://localhost:8080/api/login';
@@ -254,7 +264,7 @@ router.post('/loginUser', async (req, res) => {
         const token = response.data.token;
 
         // Set cookie named 'token' with the received token
-        res.cookie('token', token, { httpOnly: true });
+        res.cookie('token', token, {httpOnly: true});
 
         // Redirect to /home
         res.redirect('/home');
@@ -264,9 +274,9 @@ router.post('/loginUser', async (req, res) => {
             // console.error('Error response data:', error.response.data);
             // console.error('Error response status:', error.response.status);
             // console.error('Error response headers:', error.response.headers);
-            if (error.response.data){
-                res.render('login', { messageLogin: error.response.data.message, messageRegister:null});
-            }else {
+            if (error.response.data) {
+                res.render('login', {messageLogin: error.response.data.message, messageRegister: null});
+            } else {
                 res.status(error.response.status).send(error.response.data);
             }
         } else if (error.request) {
@@ -283,7 +293,7 @@ router.post('/loginUser', async (req, res) => {
 
 // POST route to handle form submission
 router.post('/register', async (req, res) => {
-    const { username, mail, password } = req.body;
+    const {username, mail, password} = req.body;
     const url = 'http://localhost:8080/api/register';
     const data = new FormData();
     data.append('username', username);
@@ -306,9 +316,9 @@ router.post('/register', async (req, res) => {
             // console.error('Error response data:', error.response.data);
             // console.error('Error response status:', error.response.status);
             // console.error('Error response headers:', error.response.headers);
-            if (error.response.data){
-                res.render('login', { messageRegister: error.response.data.message , messageLogin : null});
-            }else {
+            if (error.response.data) {
+                res.render('login', {messageRegister: error.response.data.message, messageLogin: null});
+            } else {
                 res.status(error.response.status).send(error.response.data);
             }
         } else if (error.request) {
@@ -324,9 +334,9 @@ router.post('/register', async (req, res) => {
 });
 
 router.get('/message', (req, res) => {
-    res.render('message', { title: 'Message' });
+    res.render('message', {title: 'Message'});
 });
-    
+
 //afficher un utilisateur par son id
 router.get('/user/:id', async (req, res) => {
     const userId = req.params.id;
@@ -342,15 +352,15 @@ router.get('/user/:id', async (req, res) => {
     const userFollowingUrl = `http://localhost:8080/api/getUserFollowings/${userId}`;
     const token = req.cookies.token;
     const logged = token !== undefined;
-    let loggedUser ={}
-    if (logged){
-        try{
+    let loggedUser = {}
+    if (logged) {
+        try {
             const userIDByToken = 'http://localhost:8080/api/getUserIDByToken';
             const userDataUrl = 'http://localhost:8080/api/getUser';
             const userID = await axios.get(`${userIDByToken}/${token}`, {});
             const userData = await axios.get(`${userDataUrl}/${userID.data.UserID}`, {});
             loggedUser = userData.data.user
-        }catch(e){
+        } catch (e) {
             console.log(e.data);
         }
     }
@@ -424,21 +434,21 @@ router.get('/user/:id', async (req, res) => {
         return res.status(500).send('An error occurred while fetching user data');
     }
 
-    let followersNumber ={}
-    let followingNumber ={}
+    let followersNumber = {}
+    let followingNumber = {}
 
     try {
         const followers = await axios.get(userFollowersUrl);
-        const following= await axios.get(userFollowingUrl);
-        followersNumber= followers.data.FollowerData.follower_count;
-        followingNumber= following.data.FollowerData.following_count;
-    }catch (e) {
+        const following = await axios.get(userFollowingUrl);
+        followersNumber = followers.data.FollowerData.follower_count;
+        followingNumber = following.data.FollowerData.following_count;
+    } catch (e) {
         console.log(e)
     }
 
     const topicsLength = topics.length;
     let renderOptions
-    if (logged){
+    if (logged) {
         renderOptions = {
             user,
             loggedUser,
@@ -449,7 +459,7 @@ router.get('/user/:id', async (req, res) => {
             followersNumber,
             followingNumber
         };
-    }else {
+    } else {
         renderOptions = {
             user,
             logged,
@@ -486,13 +496,13 @@ router.get('/search', async (req, res) => {
         }
     }
     let topics
-    try{
+    try {
         topics = await axios.get(`${searchUrl}?q=${req.query.query}`);
         // Arrays to store promises for fetching tag and owner data
         const tagPromises = [];
         const ownerPromises = [];
-        const numberOfLikePromises =[];
-        const topicImgPromises =[];
+        const numberOfLikePromises = [];
+        const topicImgPromises = [];
 
         // Iterate through topics and create promises for fetching tag and owner data
         for (const topic of topics.data.SearchResults.topics) {
@@ -502,7 +512,7 @@ router.get('/search', async (req, res) => {
             const fetchTagPromise = axios.get(`${TagUrl}/${topic_id}`);
             const fetchOwnerPromise = axios.get(`${ownerUrl}/${topic_id}`);
             const fetchNumberOfLikePromise = axios.get(`${likeUrl}/${topic_id}`);
-            const fetchTopicImgPromise=axios.get(`${topicImgUrl}/${topic_id}`)
+            const fetchTopicImgPromise = axios.get(`${topicImgUrl}/${topic_id}`)
 
             // Store the promises
             tagPromises.push(fetchTagPromise);
@@ -515,7 +525,7 @@ router.get('/search', async (req, res) => {
         const tagResponses = await Promise.all(tagPromises);
         const ownerResponses = await Promise.all(ownerPromises);
         const numberOfLikeResponses = await Promise.all(numberOfLikePromises)
-        const topicImgResponses=await Promise.all(topicImgPromises)
+        const topicImgResponses = await Promise.all(topicImgPromises)
 
         // Merge tag and owner data into respective topics
         tagResponses.forEach((tagResponse, index) => {
@@ -533,14 +543,14 @@ router.get('/search', async (req, res) => {
         topicImgResponses.forEach((imgResponse, index) => {
             topics.data.SearchResults.topics[index].imgPath = imgResponse.data.ImagePath;
         })
-    }catch (e) {
+    } catch (e) {
         console.log(e)
     }
 
     const topicsFound = topics.data.SearchResults.topics
     const messageFound = topics.data.SearchResults.messages
 
-    res.render('search', {logged, user, topicsFound, messageFound });
+    res.render('search', {logged, user, topicsFound, messageFound});
 });
 
 router.post('/follow/:userIdToFollow/:loggedUserId', async (req, res) => {
@@ -555,31 +565,31 @@ router.post('/follow/:userIdToFollow/:loggedUserId', async (req, res) => {
     if (logged) {
         try {
             const result = await axios.post(followThisUserUrl, {});
-            res.json({ message: result.data.message }); // Sending the success response
+            res.json({message: result.data.message}); // Sending the success response
         } catch (e) {
             console.error(e); // Log the error to the server console
-            res.status(500).json({ message: 'Failed to follow the user' }); // Sending an error response
+            res.status(500).json({message: 'Failed to follow the user'}); // Sending an error response
         }
     }
 });
 
-router.post('/unfollow/:userIdToFollow/:loggedUserId', async (req, res) =>{
+router.post('/unfollow/:userIdToFollow/:loggedUserId', async (req, res) => {
     const token = req.cookies.token;
     const logged = token !== undefined;
-    if (!logged){
+    if (!logged) {
         res.redirect(`/login`);
     }
     const toFollowUserId = req.params.userIdToFollow;
     const userId = req.params.loggedUserId;
     const unfollowThisUserUrl = `http://localhost:8080/api/unfollow/${userId}/${toFollowUserId}`;
-    if (logged){
-        try{
+    if (logged) {
+        try {
             const result = await axios.delete(`${unfollowThisUserUrl}`, {});
             // console.log(result.data.message);
-            res.json({ message: result.data.message }); // Sending the success response
-        }catch(e){
+            res.json({message: result.data.message}); // Sending the success response
+        } catch (e) {
             console.log(e.data);
-            res.status(500).json({ message: 'Failed to follow the user' }); // Sending an error response
+            res.status(500).json({message: 'Failed to follow the user'}); // Sending an error response
         }
     }
 
@@ -596,16 +606,16 @@ router.get('/topic/:id', async (req, res) => {
     const followerCountUrl = 'http://localhost:8080/api/getFollowers';
     const userIDByToken = 'http://localhost:8080/api/getUserIDByToken';
     const userDataUrl = 'http://localhost:8080/api/getUser';
-    const isFollowedUrl ='http://localhost:8080/api/isFollowed'
+    const isFollowedUrl = 'http://localhost:8080/api/isFollowed'
     const token = req.cookies.token;
     const logged = token !== undefined;
     let user
-    if (logged){
-        try{
+    if (logged) {
+        try {
             const userID = await axios.get(`${userIDByToken}/${token}`, {});
             const userData = await axios.get(`${userDataUrl}/${userID.data.UserID}`, {});
             user = userData.data.user
-        }catch(e){
+        } catch (e) {
             console.log(e.data);
         }
     }
@@ -648,10 +658,10 @@ router.get('/topic/:id', async (req, res) => {
         imgPath = imgResponse.data.ImagePath || '';
     } catch (error) {
         console.error('Error fetching topic image path:', error);
-    }   
+    }
 });
 
-    //liking a topic
+//liking a topic
 router.post('/like/:topicId/:userId', async (req, res) => {
     const topicId = req.params.topicId;
     const userId = req.params.userId;
