@@ -464,14 +464,7 @@ func GetTopic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Convert topic to JSON
-	topicJSON, err := json.Marshal(topic)
-	if err != nil {
-		http.Error(w, "Failed to marshal JSON", http.StatusInternalServerError)
-		return
-	}
-
-	response := APIResponse{Status: http.StatusOK, Message: "Success", JsonResp: topicJSON}
+	response := APIResponse{Status: http.StatusOK, Message: "Success", Topic: topic}
 	sendResponse(w, response)
 }
 

@@ -50,12 +50,13 @@ type APIResponse struct {
 	UsersData     []User                 `json:"UsersData,omitempty"`
 	FollowerData  map[string]int         `json:"FollowerData,omitempty"`
 	UserID        int                    `json:"UserID,omitempty"`
-	User          User                   `json:"User,omitempty"`
+	User          User                   `json:"user,omitempty"`
 	ImagePath     string                 `json:"ImagePath,omitempty"`
 	TopicList     []Topic                `json:"TopicList,omitempty"`
 	SearchResults SearchResults          `json:"SearchResults,omitempty"`
 	IsFollower    bool                   `json:"IsFollower,omitempty"`
 	TopicMessages []*Message             `json:"TopicMessages,omitempty"`
+	Topic         Topic                  `json:"Topic,omitempty"`
 }
 
 type Topic struct {

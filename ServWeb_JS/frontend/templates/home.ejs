@@ -151,9 +151,11 @@
                             <article class="post" data-creation-date="<%= topic.creation_date %>">
                             <div class="post__header">
                                 <div class="post__profile">
+                                    <a href="/topic/<%= topic.topic_id %>" class="post__medias">
                               <span>
                     <%= topic.title %>
                               </span>
+                                    </a>
                                 </div>
 
                                 <button class="post__more-options">
@@ -170,14 +172,16 @@
                                 <!-- si le post contient une image affiché l'image -->
                                 <% if(topic.imgPath && topic.imgPath !== "none"){ %>
                                     <div class="post__medias">
-                                        <a href="/topic/<%#!topic.topic_id %>" class="post__medias">
+                                        <a href="/topic/<%= topic.topic_id %>" class="post__medias">
                                             <img class="post__media" src="<%= topic.imgPath %>" alt="Post Content"/>
                                         </a>
                                     </div>
                                 <% } %>
+                                <a href="/topic/<%= topic.topic_id %>" class="post__medias">
                                 <div class="post-text">
                                         <p><%= topic.body %></p>
                                 </div>
+                                </a>
 
                                 <%#!-- TAGS POST--------------- --%>
                                 <div class="post-category">

@@ -622,7 +622,7 @@ router.get('/topic/:id', async (req, res) => {
     let topic = {};
     try {
         const response = await axios.get(url);
-        topic = response.data.topic || {};
+        topic = response.data.Topic || {};
     } catch (error) {
         console.error('Error fetching topic data:', error);
         return res.status(500).send('An error occurred while fetching topic data');
@@ -659,6 +659,16 @@ router.get('/topic/:id', async (req, res) => {
     } catch (error) {
         console.error('Error fetching topic image path:', error);
     }
+
+    res.render('topic', {
+        topic,
+        tags,
+        owner,
+        numberOfLike,
+        imgPath,
+        user,
+        logged
+    });
 });
 
 //liking a topic
