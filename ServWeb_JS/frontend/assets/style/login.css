@@ -5,13 +5,8 @@
   padding: 0;
   box-sizing: border-box;
 }
-.error{
-  position: absolute;
-  top: 0;
-  z-index: 44;
-  color: red;
-}
-:root{
+
+:root {
   --koko-color: hsla(177, 64%, 39%, 0.84);
   --border: hsl(0, 0%, 86%);
 }
@@ -24,7 +19,7 @@ input {
 .container {
   position: relative;
   width: 100%;
-  background-color:var(--border);
+  background-color: var(--border);
   min-height: 100vh;
   overflow: hidden;
 }
@@ -112,6 +107,12 @@ form.sign-in-form {
   font-weight: 500;
 }
 
+.error {
+  margin-top: 10px;
+  color: red;
+  font-size: 0.9em;
+}
+
 .social-text {
   padding: 0.7rem 0;
   font-size: 1rem;
@@ -160,6 +161,7 @@ form.sign-in-form {
 .btn:hover {
   background-color: #4d84e2;
 }
+
 .panels-container {
   position: absolute;
   height: 100%;
@@ -194,7 +196,6 @@ form.sign-in-form {
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* justify-content: space-around; */
   gap: 64px;
   text-align: center;
   z-index: 6;
@@ -409,8 +410,9 @@ form.sign-in-form {
     left: 50%;
   }
 }
+
 @media screen and (min-width: 871px) {
-  .stalone{
+  .stalone {
     width: 250px;
   }
 }
