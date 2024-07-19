@@ -55,7 +55,7 @@ type APIResponse struct {
 	TopicList     []Topic                `json:"TopicList,omitempty"`
 	SearchResults SearchResults          `json:"SearchResults,omitempty"`
 	IsFollower    bool                   `json:"IsFollower,omitempty"`
-	TopicMessages []Message              `json:"TopicMessages,omitempty"`
+	TopicMessages []*Message             `json:"TopicMessages,omitempty"`
 }
 
 type Topic struct {
@@ -70,14 +70,15 @@ type Topic struct {
 
 // Message struct to represent a message in the database
 type Message struct {
-	MessageID     int       `json:"message_id"`
-	Body          string    `json:"body"`
-	DateSent      time.Time `json:"date_sent"`
-	TopicID       int       `json:"topic_id"`
-	BaseMessageID *int      `json:"base_message_id"`
-	UserID        int       `json:"user_id"`
-	Username      string    `json:"Username,omitempty"`
-	ProfilePic    string    `json:"ProfilePic,omitempty"`
+	MessageID     int        `json:"message_id"`
+	Body          string     `json:"body"`
+	DateSent      time.Time  `json:"date_sent"`
+	TopicID       int        `json:"topic_id"`
+	BaseMessageID *int       `json:"base_message_id"`
+	UserID        int        `json:"user_id"`
+	Username      string     `json:"Username,omitempty"`
+	ProfilePic    string     `json:"ProfilePic,omitempty"`
+	Replies       []*Message `json:"replies,omitempty"`
 }
 
 type SearchResults struct {

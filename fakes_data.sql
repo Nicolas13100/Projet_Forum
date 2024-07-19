@@ -1,94 +1,85 @@
--- Insert Users Data
 INSERT INTO users_table (username, email, password, biography, isAdmin, isModerator, profile_pic)
-VALUES ('filmlover123', 'filmlover123@example.com', 'password123', 'Passionate about movies!', 0, 0,
+VALUES ('john_doe', 'john.doe@example.com', 'hashed_password_1', 'Film enthusiast and critic.', 1, 0,
         '/static/images/userAvatar/default-user.png'),
-       ('cinemafanatic', 'cinemafanatic@example.com', 'securepassword', 'Obsessed with all things cinema.', 0, 0,
+       ('jane_smith', 'jane.smith@example.com', 'hashed_password_2', 'Avid moviegoer and blogger.', 0, 1,
         '/static/images/userAvatar/default-user.png'),
-       ('moviebuff456', 'moviebuff456@example.com', 'moviesarelife', 'Movie enthusiast exploring new genres.', 0, 0,
+       ('alice_jones', 'alice.jones@example.com', 'hashed_password_3', 'Movie director and producer.', 0, 0,
         '/static/images/userAvatar/default-user.png'),
-        ('sabrina','sabrinnaeloundou33@gmail.com','sabrina','I love horror movies',0,0,'/static/images/userAvatar/sylvess.png');
-      
-       
-
--- Insert Topics Data
-INSERT INTO Topics_Table (title, body, status, is_private, user_id)
-VALUES ('Favorite Directors', 'Discuss your favorite film directors and their works here!', 1, 0, 1),
-       ('Latest Releases', 'Share your thoughts on the latest movies hitting theaters.', 1, 0, 2),
-       ('Classic Films', 'Rediscover and analyze timeless classics from the golden era of cinema.', 1, 0, 3);
-
--- Insert Tags Data
+       ('bob_brown', 'bob.brown@example.com', 'hashed_password_4', 'Film student and reviewer.', 0, 0,
+        '/static/images/userAvatar/default-user.png');
+INSERT INTO Topics_Table (title, body, status, user_id)
+VALUES ('Top 10 Sci-Fi Movies of All Time', 'In this list, we explore the greatest science fiction films ever made.', 1,
+        1),
+       ('The Evolution of Action Films', 'A deep dive into how action films have evolved over the decades.', 1, 2),
+       ('Classic Horror Films to Watch', 'A selection of classic horror films that every fan should see.', 1, 3),
+       ('The Impact of Streaming Services on Cinema',
+        'An analysis of how streaming platforms have changed the film industry.', 1, 4);
 INSERT INTO Tags_Table (tag_name)
-VALUES ('Action'),
-       ('Drama'),
-       ('Comedy'),
-       ('Science-fiction'),
-       ('Anime'),
-        ('Fantasy'),
-        ('Romance'),
-        ('Thriller'),
-        ('Mystery'),
-        ('Documentary'),
-        ('Musical'),
-        ('Adventure'),
-        ('Crime'),
-        ('Biography'),
-        ('Family'),
-        ('History'),
-        ('War'),
-        ('Sport'),
-        ('Western'),
-        ('Music'),
-        ('Horror');
-
--- Insert Messages Data
+VALUES ('Sci-Fi'),
+       ('Action'),
+       ('Horror'),
+       ('Streaming'),
+       ('Classic'),
+       ('Modern');
+INSERT INTO TopicTags (topic_id, tag_id)
+VALUES (1, 1), -- Top 10 Sci-Fi Movies of All Time - Sci-Fi
+       (2, 2), -- The Evolution of Action Films - Action
+       (3, 3), -- Classic Horror Films to Watch - Horror
+       (4, 4); -- The Impact of Streaming Services on Cinema - Streaming
+-- Original Messages
 INSERT INTO Messages_Table (body, topic_id, user_id)
-VALUES ('I just watched the latest superhero movie and it was amazing!', 2, 1),
-       ('Has anyone seen the new indie film everyone is talking about?', 2, 2),
-       ('Let''s discuss the cinematography in this classic film!', 3, 3);
-
--- Insert Admin Logs Data
+VALUES ('I completely agree with the list of sci-fi movies! Especially love "Blade Runner".', 1, 2),
+       ('Great points on how action films have changed. The evolution is fascinating.', 2, 3),
+       ('The classic horror films are a must-watch. "The Shining" is my all-time favorite!', 3, 4),
+       ('Streaming services have definitely changed the game. More content than ever!', 4, 1);
+-- Replies
+INSERT INTO Messages_Table (body, base_message_id, user_id)
+VALUES ('I totally agree with your point about "Blade Runner"! It’s a classic.', 1, 3),
+       ('The evolution of action films is fascinating. I think "Die Hard" was a game-changer.',  2, 4),
+       ('Have you seen "Psycho"? It’s a great classic horror film that’s not on the list.', 3, 1),
+       ('I agree. Streaming services have made it easier to find rare films.', 4, 2);
 INSERT INTO Admin_Logs_Table (action_descrbition)
-VALUES ('Banned user filmlover123 for violating forum rules.'),
-       ('Moderated inappropriate content in topic Latest Releases.');
-
--- Insert Images Data
-INSERT INTO images_Table (topic_id,image_link)
-VALUES (2,'/static/images/TopicsImg/movie_poster_1.jpg'),
-       (3,'/static/images/TopicsImg/cinema_snapshot_1.png');
-
--- Insert Have Data
-INSERT INTO have (topic_id, tag_id)
-VALUES (2, 1),
-       (2, 4),
-       (3, 2),
-       (3, 3);
-
--- Insert Admin Data
+VALUES ('Added new topic about Sci-Fi movies.'),
+       ('Updated tags for action films topic.'),
+       ('Deleted a message related to horror films.'),
+       ('Created new user for film reviews.');
+INSERT INTO images_Table (image_link, message_id, topic_id)
+VALUES ('/static/images/TopicsImg/movie_poster_1.jpg', 1, 1),
+       ('/static/images/TopicsImg/cinema_snapshot_1.png', 2, 2),
+       ('/static/images/TopicsImg/clap.jpg', 3, 3),
+       ('/static/images/TopicsImg/flms.webp', 4, 4);
 INSERT INTO admin (topic_id, message_id, log_id)
-VALUES (2, 1, 1),
-       (2, 2, 2);
-
--- Insert React Topic Data
-INSERT INTO react_topic (user_id, topic_id, status)
-VALUES (1, 2, 1),
-       (2, 2, 2),
-       (3, 3, 1);
-
--- Insert Friendship Data
-INSERT INTO friendship (sender_id, reciver_id, status, created_at, updated_at)
-VALUES (1, 2, 1, NOW(), NOW()),
-       (2, 3, 1, NOW(), NOW());
-
--- Insert React Message Data
-INSERT INTO react_message (user_id, message_id, status)
 VALUES (1, 1, 1),
-       (2, 1, 2),
-       (3, 3, 1);
-
--- Insert Follow Data
-INSERT INTO follow (user_id, topic_id, followed_date)
-VALUES (1, 2, NOW()),
-       (2, 3, NOW()),
-       (3, 1, NOW());
-
-INSERT INTO TopicTags (topic_id, tag_id) VALUES (1, 1),(1,2),(2, 1),(2,2),(3, 1),(3,2),(3, 4),(1,5);
+       (2, 2, 2),
+       (3, 3, 3),
+       (4, 4, 4);
+INSERT INTO react_topic (user_id, topic_id, status)
+VALUES (1, 1, 1), -- User 1 likes Topic 1
+       (2, 2, 0), -- User 2 has no comment on Topic 2
+       (3, 3, 2), -- User 3 dislikes Topic 3
+       (4, 4, 1); -- User 4 likes Topic 4
+INSERT INTO friendship (sender_id, reciver_id, status, created_at, updated_at)
+VALUES (1, 2, 1, '2024-01-01 10:00:00', '2024-01-02 11:00:00'),
+       (2, 3, 0, '2024-02-01 14:00:00', '2024-02-01 14:00:00'),
+       (3, 4, 1, '2024-03-01 16:00:00', '2024-03-02 17:00:00');
+INSERT INTO react_message (user_id, message_id, status)
+VALUES (1, 1, 1), -- User 1 likes Message 1
+       (2, 2, 0), -- User 2 has no comment on Message 2
+       (3, 3, 2), -- User 3 dislikes Message 3
+       (4, 4, 1); -- User 4 likes Message 4
+INSERT INTO follow (user_id, topic_id)
+VALUES (1, 1), -- User 1 follows Topic 1
+       (2, 2), -- User 2 follows Topic 2
+       (3, 3), -- User 3 follows Topic 3
+       (4, 4); -- User 4 follows Topic 4
+INSERT INTO followUser (user_id, follower_id)
+VALUES (1, 2), -- User 1 follows User 2
+       (2, 3), -- User 2 follows User 3
+       (3, 4), -- User 3 follows User 4
+       (4, 1); -- User 4 follows User 1
+INSERT INTO tokens (user_id, end_date, token)
+VALUES (1, '2024-12-31 23:59:59', 'abcdef1234567890'),
+       (2, '2024-12-31 23:59:59', '123456abcdef7890');
+INSERT INTO password_reset_tokens (user_id, end_date, token)
+VALUES (1, '2024-12-31 23:59:59', 'resetabcdef123456'),
+       (2, '2024-12-31 23:59:59', 'reset123456abcdef');

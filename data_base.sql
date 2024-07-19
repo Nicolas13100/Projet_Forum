@@ -51,7 +51,7 @@ CREATE TABLE Messages_Table
     message_id      INT AUTO_INCREMENT,
     body            VARCHAR(500) NOT NULL,
     date_sent       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP(),
-    topic_id        INT          NOT NULL,
+    topic_id        INT,
     base_message_id INT,
     user_id         INT          NOT NULL,
     PRIMARY KEY (message_id),
@@ -78,15 +78,6 @@ CREATE TABLE images_Table
     UNIQUE (image_link),
     FOREIGN KEY (message_id) REFERENCES Messages_Table (message_id) ON DELETE CASCADE,
     FOREIGN KEY (topic_id) REFERENCES Topics_Table (topic_id) ON DELETE CASCADE
-) ENGINE = INNODB;
-
-CREATE TABLE have
-(
-    topic_id INT,
-    tag_id   INT,
-    PRIMARY KEY (topic_id, tag_id),
-    FOREIGN KEY (topic_id) REFERENCES Topics_Table (topic_id),
-    FOREIGN KEY (tag_id) REFERENCES Tags_Table (tag_id)
 ) ENGINE = INNODB;
 
 CREATE TABLE admin
